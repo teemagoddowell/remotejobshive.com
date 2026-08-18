@@ -1,0 +1,240 @@
+/* --- User Dashboard Styles --- */
+.dashboard-body {
+    background-color: var(--primary-bg);
+    padding: 2rem;
+}
+
+.dashboard-container {
+    display: flex;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 2rem;
+}
+
+/* --- Modern Sidebar --- */
+.dashboard-sidebar {
+    flex: 0 0 310px;
+    background-color: rgba(34, 48, 63, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--job-card-border);
+    border-radius: 16px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.profile-summary {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-accent);
+    margin-bottom: 1rem;
+}
+
+.profile-summary h3 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+}
+
+.profile-summary p {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+}
+
+.dashboard-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: auto; 
+}
+
+.dashboard-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    position: relative;
+}
+
+.dashboard-nav .nav-link:hover {
+    background-color: var(--job-card-bg);
+    color: var(--text-primary);
+}
+
+.dashboard-nav .nav-link.active {
+    background-color: rgba(56, 155, 255, 0.15);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Active link indicator bar */
+.dashboard-nav .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 4px;
+    background-color: var(--primary-accent);
+    border-radius: 0 4px 4px 0;
+}
+
+.btn-primary-full {
+    width: 100%;
+    padding: 0.75rem;
+    margin-top: 2rem;
+    background: var(--primary-accent);
+    border: none;
+    color: var(--text-primary);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.btn-primary-full:hover {
+    background-color: var(--primary-accent-dark);
+}
+
+/* --- Main Content --- */
+.dashboard-main-content {
+    flex: 1;
+}
+
+.dashboard-greeting {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.dashboard-subtext {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    margin: 0 0 2.5rem 0;
+}
+
+/* Base Card Style */
+.dashboard-card {
+    background-color: var(--job-card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--job-card-border);
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-accent);
+}
+
+.stat-label {
+    color: var(--text-tertiary);
+}
+
+/* Recent Applications List */
+.dashboard-card h2 {
+    margin-top: 0;
+    color: var(--text-primary);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.application-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.application-item {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.application-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.application-details .job-title {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.application-details .company-name {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background-color: var(--button-bg);
+    color: var(--text-secondary);
+}
+
+.status-badge.status-viewed {
+    background-color: rgba(56, 155, 255, 0.2);
+    color: var(--primary-accent);
+}
+.status-badge.status-in {
+    background-color: rgba(247, 184, 75, 0.2); 
+    color: #f7b84b;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 992px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    .dashboard-sidebar {
+        position: static;
+        flex: 1;
+    }
+}
+
+@media (max-width: 844px){
+    a.nav-link, .nav-link.active {
+        font-weight: 400 !important;
+        font-size: medium;
+    }
+}
+
+/* .dashboard-sidebar a {
+    text-align: left !important;
+} */
+

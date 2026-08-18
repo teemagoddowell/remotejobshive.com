@@ -1,0 +1,164 @@
+.companiesContainer {
+  padding: 1.5rem 2rem;
+  color: var(--text-primary);
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.pageHeader h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background-color: var(--secondary-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  min-width: 300px;
+}
+
+.searchBar svg {
+  color: var(--text-secondary);
+  margin-right: 0.5rem;
+  width: 16px;
+  height: 16px;
+}
+
+.searchBar input {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  flex-grow: 1;
+  outline: none;
+}
+.searchBar input::placeholder {
+  color: var(--text-secondary);
+}
+
+
+.companiesTableContainer { /* Changed */
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+.companiesTable { /* Changed */
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.companiesTable th, /* Changed */
+.companiesTable td { /* Changed */
+  padding: 0.9rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.companiesTable th { /* Changed */
+  background-color: var(--secondary-bg);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.companiesTable tbody tr:last-child td { /* Changed */
+  border-bottom: none;
+}
+
+.companiesTable tbody tr:hover { /* Changed */
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.actionButtons a,
+.actionButtons button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  margin-right: 0.6rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  vertical-align: middle;
+}
+.actionButtons a:hover,
+.actionButtons button:hover {
+  opacity: 1;
+}
+
+.viewButton:hover { color: #3b82f6; }
+.editButton:hover { color: var(--accent-color); }
+.deleteButton:hover { color: #ef4444; }
+
+.actionButtons svg {
+  width: 16px;
+  height: 16px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.paginationButtons button {
+  background-color: var(--secondary-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.paginationButtons button:hover:not(:disabled) {
+  background-color: var(--card-border);
+}
+
+.paginationButtons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchBar {
+    min-width: unset;
+    width: 100%;
+  }
+}

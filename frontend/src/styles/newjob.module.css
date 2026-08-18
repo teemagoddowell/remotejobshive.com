@@ -1,0 +1,219 @@
+/* --- New Job Posting Page Styles --- */
+
+/* --- Main Layout --- */
+.new-posting-container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.page-header h1 {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+/* --- Form Styles --- */
+.new-job-form {
+    background-color: var(--job-card-bg);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid var(--job-card-border);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+.form-section h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    display: block;
+    color: var(--text-tertiary);
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--job-card-border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+}
+
+.new-company-fields {
+    border-left: 3px solid var(--primary-accent);
+    padding-left: 1.5rem;
+    margin-top: 1.5rem;
+    animation: fadeIn 0.3s;
+}
+
+/* --- Searchable Dropdown --- */
+.searchable-dropdown {
+    position: relative;
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--job-card-border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.dropdown-list li {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.dropdown-list li:hover {
+    background-color: var(--primary-accent);
+    color: var(--text-primary);
+}
+
+.add-new-option {
+    font-weight: 600;
+    color: var(--primary-accent) !important;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+/* --- Form Actions / Buttons --- */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.form-actions .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn.btn-primary {
+    background-color: var(--primary-accent);
+    color: var(--text-primary);
+}
+
+.btn.btn-primary:hover {
+    background-color: var(--primary-accent-dark);
+}
+
+/* --- Responsive Styles --- */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Add these styles to your newjob.css file --- */
+
+/* --- Checkboxes --- */
+.form-group.checkboxes {
+    grid-column: 1 / -1; 
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2rem;
+    margin-top: -0.5rem; 
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-accent);
+}
+
+.checkbox-item label{
+    font-weight: 400;
+    color: var(--text-tertiary);
+}
+
+.checkbox-item label{
+    margin: 0px !important;
+}
+
+.salary-inputs {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.salary-inputs .currency-select {
+    flex: 0 0 90px; 
+    height: 48px;
+}
+
+.salary-inputs input {
+    flex: 1;
+}

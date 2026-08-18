@@ -1,0 +1,49 @@
+.not-found-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 100vh;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    padding: 2rem;
+}
+
+.not-found-content h1 {
+    font-size: 8rem;
+    font-weight: 700;
+    color: var(--primary-accent);
+    margin: 0;
+    line-height: 1;
+}
+
+.not-found-content h2 {
+    font-size: 2rem;
+    margin: 0 0 1rem 0;
+    color: var(--text-secondary);
+}
+
+.not-found-content p {
+    color: var(--text-tertiary);
+    max-width: 400px;
+    margin: 0 auto 2rem auto;
+}
+
+.btn-primary-404 {
+    background: var(--primary-accent);
+    border: none;
+    color: var(--text-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-404:hover {
+    background: var(--primary-accent-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-dark);
+}

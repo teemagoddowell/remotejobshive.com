@@ -1,0 +1,64 @@
+.about-container {
+    max-width: 900px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+}
+
+.about-hero {
+    text-align: center;
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.about-hero h1 {
+    font-size: 3rem;
+    color: var(--text-primary);
+}
+
+.about-hero .lead {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 1rem auto 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.feature-card {
+    background-color: var(--job-card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--job-card-border);
+}
+
+.feature-card h3 {
+    color: var(--primary-accent);
+    margin-top: 0;
+}
+
+.founder-section {
+    text-align: center;
+    padding: 3rem 0;
+    margin-top: 2rem;
+    border-top: 1px solid var(--job-card-border);
+}
+
+.founder-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1.5rem;
+    border: 3px solid var(--primary-accent);
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+}

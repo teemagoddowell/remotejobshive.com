@@ -1,0 +1,123 @@
+.my-postings-container .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.job-listings-table {
+    background-color: var(--job-card-bg);
+    border: 1px solid var(--job-card-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.myTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.th, .td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.thead {
+    background-color: var(--secondary-bg);
+}
+
+.th {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.tbody .tr:hover {
+    background-color: var(--secondary-bg);
+}
+
+.td a {
+    color: var(--text-primary);
+    font-weight: 500;
+    text-decoration: none;
+}
+.td a:hover {
+    color: var(--primary-accent);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+.btn-action {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--job-card-border);
+}
+.btn-edit {
+    background-color: var(--button-bg);
+    color: var(--text-secondary);
+}
+.btn-delete {
+    background-color: rgba(240, 98, 98, 0.1);
+    color: #f06262;
+    border-color: rgba(240, 98, 98, 0.3);
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.page-header h1 {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.myTable :global(tbody tr:last-child td) {
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+.status-badge.status-active, .status-badge.status-viewed {
+    background-color: rgba(38, 198, 133, 0.2);
+    color: #26c685;
+}
+.status-badge.status-paused, .status-badge.status-in {
+    background-color: rgba(247, 184, 75, 0.2);
+    color: #f7b84b;
+}
+.status-badge.status-application {
+    background-color: var(--button-bg);
+    color: var(--text-secondary);
+}

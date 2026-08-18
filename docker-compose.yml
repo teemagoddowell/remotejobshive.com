@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: remotejobshive-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-remotejobshive_db}
+      POSTGRES_USER: ${POSTGRES_USER:-jobshive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-towhyz-piwbo@BSHJ@7IWjm}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - jobshive-net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: remotejobshive-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./data/uploads:/var/www/html/uploads
+    depends_on:
+      - db
+    networks:
+      - jobshive-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL
+        - NEXT_PUBLIC_MAIN_URL
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID
+        - NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY
+    container_name: remotejobshive-frontend
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    networks:
+      - jobshive-net
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL
+    container_name: remotejobshive-admin
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./admin/.env
+    depends_on:
+      - backend
+    networks:
+      - jobshive-net
+
+networks:
+  jobshive-net:
+    driver: bridge

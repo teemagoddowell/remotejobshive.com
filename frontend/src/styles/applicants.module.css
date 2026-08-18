@@ -1,0 +1,90 @@
+.applicants-container .page-header {
+    margin-bottom: 2rem;
+}
+
+.job-group-card {
+    background-color: var(--job-card-bg);
+    border: 1px solid var(--job-card-border);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.job-group-title {
+    background-color: var(--secondary-bg);
+    padding: 1rem 1.5rem;
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.applicant-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.applicant-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+.applicant-item:last-child {
+    border-bottom: none;
+}
+
+.applicant-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.applicant-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.user-details, .rdetails{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.applicant-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.applicant-title {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+}
+
+.no-resume {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+}
+
+.applicant-actions {
+    display: flex;
+    gap: 10px;
+}
+
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.page-header h1 {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}

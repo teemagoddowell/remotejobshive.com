@@ -1,0 +1,91 @@
+# ==========================================
+# SECRETS & KEYS (Crucial for GitHub Push)
+# ==========================================
+# Service Account / Credentials / Private Keys
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!jsconfig.json
+!components.json
+!nest-cli.json
+
+# Environment variables
+.env
+.env*.local
+.env.production
+.env.development
+*.pem
+*.key
+*.crt
+
+# ==========================================
+# DEPENDENCIES & LOGS
+# ==========================================
+node_modules/
+jspm_packages/
+web_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# NEXT.JS & REACT BUILDS
+# ==========================================
+.next/
+out/
+build/
+dist/
+
+# React App / Vite build outputs
+/build
+/dist
+
+# Next.js Serverless / Telemetry
+.vercel
+.turbo
+
+# ==========================================
+# DOCKER & HOMELAB DEPLOYMENTS
+# ==========================================
+# Ignore local Docker override configs & persistent data mounts
+docker-compose.override.yml
+*.local.yml
+.docker/
+
+# Docker volumes / local db storage directories (if mounted inside project folder)
+/data/
+/pgdata/
+/db_data/
+
+# ==========================================
+# CACHES, TESTING & TEMP FILES
+# ==========================================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.node_repl_history
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Editor / OS files
+.DS_Store
+*.pem
+.vscode/
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

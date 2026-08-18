@@ -1,0 +1,157 @@
+/* --- My Applications Page Styles --- */
+.applications-container {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--job-card-border);
+}
+
+.page-header h1 {
+    font-size: 2.25rem;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.applications-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+.application-card {
+    background-color: var(--job-card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--job-card-border);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.job-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.company-logo-app img {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+.job-details-app h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.job-details-app p {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.job-details-app p span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.detail-divider {
+    color: var(--job-card-border);
+}
+
+.card-status .status-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Status Badge Colors */
+.status-badge.status-in-review {
+    background-color: rgba(247, 184, 75, 0.2); 
+    color: #f7b84b;
+}
+
+.status-badge.status-submitted {
+    background-color: rgba(56, 155, 255, 0.2); /* Blue */
+    color: var(--primary-accent);
+}
+
+.status-badge.status-not-selected {
+    background-color: rgba(240, 98, 98, 0.2); /* Red */
+    color: #f06262;
+}
+
+.status-badge.status-interview-scheduled {
+    background-color: rgba(38, 198, 133, 0.2); /* Green */
+    color: #26c685;
+}
+
+/* --- Responsive Styles --- */
+@media (max-width: 768px) {
+    .job-details-app p {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .detail-divider {
+        display: none;
+    }
+}
+
+.subscription-section{
+    padding: 0;
+}
+
+.status-select {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: var(--button-bg);
+    color: var(--text-secondary);
+}
+.status-select:focus {
+    outline: none;
+    border-color: var(--primary-accent);
+}
+
+.status-select.status-interviewing {
+    background-color: rgba(38, 198, 133, 0.2);
+    color: #26c685;
+}
+.status-select.status-not-selected {
+    background-color: rgba(240, 98, 98, 0.2);
+    color: #f06262;
+}

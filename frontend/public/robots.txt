@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard/
+Disallow: /forget-password/
+Disallow: /reset-password/
+
+Sitemap: https://www.remotejobshive.co/sitemap.xml
