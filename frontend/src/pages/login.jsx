@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -19,13 +19,7 @@ function LoginPageContent() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [currentFeatureIndex, setCurrentFeatureIndex] = useState(0);
   const [rememberMe, setRememberMe] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
   const pageUrl = `${mainURL}/login`;
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,10 +34,18 @@ function LoginPageContent() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to log in');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to log in');
+      }
       
       login(data.user, data.token);
-      router.push(data.user.role === 'recruiter' ? recruiterDashboard : userDashboard);
+
+      if (data.user.role === 'recruiter') {
+        router.push(recruiterDashboard);
+      } else {
+        router.push(userDashboard);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -52,11 +54,11 @@ function LoginPageContent() {
   };
 
   const handleNext = () => {
-    setCurrentFeatureIndex((prev) => (prev + 1) % features.length);
+    setCurrentFeatureIndex((prevIndex) => (prevIndex + 1) % features.length);
   };
 
   const handlePrev = () => {
-    setCurrentFeatureIndex((prev) => (prev - 1 + features.length) % features.length);
+    setCurrentFeatureIndex((prevIndex) => (prevIndex - 1 + features.length) % features.length);
   };
   
   const handleBackendAuth = async (googleData) => {
@@ -78,7 +80,12 @@ function LoginPageContent() {
       if (!response.ok) throw new Error(data.message || 'Google Sign-In failed on our server.');
 
       login(data.user, data.token);
-      router.push(data.user.role === 'recruiter' ? recruiterDashboard : userDashboard);
+
+      if (data.user.role === 'recruiter') {
+        router.push(recruiterDashboard);
+      } else {
+        router.push(userDashboard);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -91,12 +98,14 @@ function LoginPageContent() {
       const fetchUserInfo = async () => {
         try {
           const response = await fetch(fetchGooglev3, {
-            headers: { 'Authorization': `Bearer ${codeResponse.access_token}` }
+            headers: {
+              'Authorization': `Bearer ${codeResponse.access_token}`
+            }
           });
           const googleDetails = await response.json();
           handleBackendAuth(googleDetails);
         } catch (error) {
-          setError("Failed to fetch Google user info.");
+           setError("Failed to fetch Google user info.");
         }
       };
       fetchUserInfo();
@@ -123,9 +132,9 @@ function LoginPageContent() {
       <div className={styles['login-page']}>
         <div className={styles['login-form-section']}>
           <header className={styles['login-header']}>
-            <Link href="/" className={styles['headerLogo']}>
-              <img src={logoURL} width={300} alt="JobsHive Logo" />
-            </Link>
+            <a href="/" className={styles['headerLogo']}>
+              <img src={logoURL} width="300px" alt="JobsHive Logo" />
+            </a>
           </header>
           <main className={styles['form-container']}>
             <h2>Log In</h2>
@@ -158,12 +167,7 @@ function LoginPageContent() {
                 {loading ? 'Logging in...' : 'Log In'}
               </button>
               <div className={styles['separator']}>OR</div>
-              <button 
-                type="button" 
-                className={styles['google-btn']} 
-                onClick={() => hasMounted && googleLogin()}
-                disabled={!hasMounted || loading}
-              >
+              <button type="button" className={styles['google-btn']} onClick={() => googleLogin()}>
                 <GoogleIcon /> Continue with Google
               </button>
             </form>
@@ -176,8 +180,8 @@ function LoginPageContent() {
             </Link>
           </header>
           <div className={styles['info-content']}>
-            <h2>{features[currentFeatureIndex]?.title}</h2>
-            <p>{features[currentFeatureIndex]?.description}</p>
+            <h2>{features[currentFeatureIndex].title}</h2>
+            <p>{features[currentFeatureIndex].description}</p>
             <div className={styles['carousel-nav']}>
               <span className={styles['carousel-arrow']} onClick={handlePrev}>&#x276E;</span>
               <div className={styles['carousel-dots']}>
