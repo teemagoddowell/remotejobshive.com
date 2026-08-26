@@ -23,8 +23,20 @@ services:
       - ./backend/.env
     volumes:
       - ./data/uploads:/var/www/html/uploads
+      - ./cdn/uploads:/app/cdn/uploads
     depends_on:
       - db
+    networks:
+      - jobshive-net
+  cdn:
+    image: nginx:alpine
+    container_name: rjh-cdn
+    restart: always
+    volumes:
+      - ./cdn/uploads:/usr/share/nginx/html
+      - ./cdn/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8005:80"
     networks:
       - jobshive-net
 
@@ -62,6 +74,18 @@ services:
       - ./admin/.env
     depends_on:
       - backend
+    networks:
+      - jobshive-net
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: remotejobshive-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+      - backend
+      - admin
     networks:
       - jobshive-net
 

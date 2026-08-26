@@ -11,7 +11,7 @@ const BASE_URL = process.env.BASE_URL;
 const SITEMAP_LIMIT = 50000; 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PUBLIC_DIR = path.join(__dirname, '..', 'next-jobshive', 'public'); 
+const PUBLIC_DIR = path.join(__dirname, 'public/sitemap'); 
 
 // --- HELPER FUNCTIONS (Unchanged) ---
 

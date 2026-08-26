@@ -10,6 +10,7 @@ import verifyToken from "./middleware/verifyAdmin.js";
 import slugify from "slugify";
 import multer from 'multer';
 import fs from 'fs';
+import fsp from "fs/promises";
 import axios from "axios";
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
@@ -22,6 +23,8 @@ dotenv.config();
 const app = express();
 const port = 8000;
 const URI = process.env.BASE_URL;
+const CDN_UPLOAD_DIR = "/app/cdn/uploads";
+const CDN_BASE_URL = process.env.CDN_BASE_URL;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -72,9 +75,8 @@ export const sendEmail = async (to, subject, html, fromAddress, fromName, addUns
 };
 
 const allowedOrigins = [
-  'https://remotejobshive.co',
-  'https://www.remotejobshive.co', 
-  'http://localhost:8001'
+  'https://remotejobshive.com',
+  'https://www.remotejobshive.com'
 ];
 
 const corsOptions = {
@@ -95,9 +97,6 @@ app.use(express.static('public'));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const storage = new Storage();
-const bucket = storage.bucket(process.env.GCS_STORAGE_BUCKET);
-
 const multerUpload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -105,19 +104,17 @@ const multerUpload = multer({
   },
 });
 
-const logoStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = 'public/images/logos'; 
-    fs.mkdirSync(dir, { recursive: true }); 
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const companySlug = slugify(req.body.name || 'company');
-    cb(null, `${companySlug}-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
-const uploadLogo = multer({ storage: logoStorage, limits: { fileSize: 5 * 1024 * 1024 } });
+async function saveToCDN(relativePath, buffer) {
+  const fullPath = path.join(CDN_UPLOAD_DIR, relativePath);
+
+  await fsp.mkdir(path.dirname(fullPath), {
+    recursive: true,
+  });
+
+  await fsp.writeFile(fullPath, buffer);
+
+  return `${CDN_BASE_URL}/${relativePath}`;
+}
 
 const getSubscriptionStatus = async (userId) => {
     const subscriptionResult = await db.query(`
@@ -223,20 +220,19 @@ app.post("/auth/google", async (req, res) => {
             try {
                 const templatePath = path.join(__dirname, 'mail-templates', 'welcome.html');
                 let emailHtml = fs.readFileSync(templatePath, 'utf8');
-
-            emailHtml = emailHtml
-            .replace('[User Name]', user.full_name)
-            .replace('[dashboard-link]', `${URI}/dashboard/user`);
-            
-            const fromAddress = "welcome";
-            const fromName = "Remote JobsHive Team";
-            await sendEmail(
-                user.email, 
-                "Welcome to Remote JobsHive!", 
-                emailHtml,
-                fromAddress,
-                fromName
-            );
+                emailHtml = emailHtml
+                .replace('[User Name]', user.full_name)
+                .replace('[dashboard-link]', `${URI}/dashboard/user`);
+                
+                const fromAddress = "welcome";
+                const fromName = "Remote JobsHive Team";
+                await sendEmail(
+                    user.email, 
+                    "Welcome to Remote JobsHive!", 
+                    emailHtml,
+                    fromAddress,
+                    fromName
+                );
             } catch (error) {
                 console.error("Error sending welcome email:", error);
             }
@@ -620,21 +616,30 @@ app.get("/companies", async (req, res) => {
 });
 
 // Add New Company 
-app.post("/companies", authenticateToken, uploadLogo.single('logo'), async (req, res) => {
+app.post("/companies", authenticateToken, multerUpload.single("logo"), async (req, res) => {
     try {
-        const { name, about, website_url, linkedin_url} = req.body;
-        const companySlug = slugify(name, { lower: true, strict: true });
-        const logoUrl = req.file ? `${URI}/images/logos/${req.file.filename}` : null; 
+        const {name, about,website_url,linkedin_url} = req.body;
+        const companySlug = slugify(name, {lower: true, strict: true});
+        let logoUrl = null;
+
+        if (req.file) {
+            const fileExtension = path
+                .extname(req.file.originalname)
+                .toLowerCase();
+
+            const fileName = `logos/${companySlug}-${Date.now()}${fileExtension}`;
+            logoUrl = await saveToCDN(fileName, req.file.buffer);
+        }
 
         const newCompanyResult = await db.query(
-            "INSERT INTO companies (name, about, logo_url, website_url, linkedin_url, slug) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+            `INSERT INTO companies (name, about, logo_url, website_url, linkedin_url, slug) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [name, about, logoUrl, website_url, linkedin_url, companySlug]
         );
         res.status(201).json(newCompanyResult.rows[0]);
 
     } catch (error) {
         console.error("Error creating company:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({message: "Internal server error"});
     }
 });
 
@@ -659,7 +664,7 @@ app.post("/add-jobs", authenticateToken, async (req, res) => {
             }
             companySlug = companyResult.rows[0].slug;
         } else {
-            const companySlug = slugify(company.newCompanyName);
+            companySlug = slugify(company.newCompanyName);
             const newCompanyResult = await db.query(
                 `INSERT INTO companies (name, about, website_url, linkedin_url, slug)
                  VALUES ($1, $2, $3, $4, $5) RETURNING id`,
@@ -1021,35 +1026,24 @@ app.patch("/users/me/avatar", authenticateToken, multerUpload.single('avatar'), 
         }
 
         const userId = req.user.id;
-        const fileExtension = path.extname(req.file.originalname);
+
+        const fileExtension = path.extname(req.file.originalname).toLowerCase();
         const fileName = `avatars/${userId}-${Date.now()}${fileExtension}`;
+
+        const publicUrl = await saveToCDN(
+            fileName,
+            req.file.buffer
+        );
+
+        const result = await db.query(
+            "UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING avatar_url",
+            [publicUrl, userId]
+        );
         
-        const blob = bucket.file(fileName);
-        const blobStream = blob.createWriteStream({
-            resumable: false,
+        res.status(200).json({
+            message: "Avatar updated successfully!",
+            avatar_url: result.rows[0].avatar_url,
         });
-
-        blobStream.on('error', (err) => {
-            console.error(err);
-            res.status(500).json({ message: 'Could not upload the file.' });
-        });
-
-        blobStream.on('finish', async () => {
-            await blob.makePublic();
-            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-
-            const result = await db.query(
-                "UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING avatar_url",
-                [publicUrl, userId]
-            );
-
-            res.status(200).json({
-                message: 'Avatar updated successfully!',
-                avatar_url: result.rows[0].avatar_url,
-            });
-        });
-
-        blobStream.end(req.file.buffer);
 
     } catch (error) {
         console.error("Avatar upload error:", error);
@@ -1058,35 +1052,45 @@ app.patch("/users/me/avatar", authenticateToken, multerUpload.single('avatar'), 
 });
 
 // Upload Resume
-app.patch("/users/me/resume", authenticateToken, multerUpload.single('resume'), async (req, res) => {
+app.patch("/users/me/resume", authenticateToken, multerUpload.single("resume"), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded.' });
+            return res.status(400).json({ message: "No file uploaded." });
         }
-        
+
         const user = req.user;
         const fullNameSlug = slugify(user.fullName);
-        const fileName = `resumes/${fullNameSlug}-resume-${user.id}${path.extname(req.file.originalname)}`;
-        
-        const blob = bucket.file(fileName);
-        const blobStream = blob.createWriteStream({ resumable: false });
 
-        blobStream.on('error', (err) => res.status(500).json({ message: 'Could not upload the file.' }));
+        const fileExtension = path
+            .extname(req.file.originalname)
+            .toLowerCase();
 
-        blobStream.on('finish', async () => {
-            await db.query(
-                "UPDATE users SET resume_url = $1, resume_filename = $2 WHERE id = $3",
-                [fileName, req.file.originalname, user.id]
-            );
+        const fileName = `resumes/${fullNameSlug}-resume-${user.id}-${Date.now()}${fileExtension}`;
 
-            res.status(200).json({ message: 'Resume uploaded successfully!' });
+        const publicUrl = await saveToCDN(
+            fileName,
+            req.file.buffer
+        );
+
+        await db.query(
+            "UPDATE users SET resume_url = $1, resume_filename = $2 WHERE id = $3",
+            [
+                publicUrl,
+                req.file.originalname,
+                user.id
+            ]
+        );
+
+        res.status(200).json({
+            message: "Resume uploaded successfully!"
         });
-
-        blobStream.end(req.file.buffer);
 
     } catch (error) {
         console.error("Error uploading resume:", error);
-        res.status(500).json({ message: "Unable to Upload Resume. Try again." });
+
+        res.status(500).json({
+            message: "Unable to Upload Resume. Try again."
+        });
     }
 });
 
