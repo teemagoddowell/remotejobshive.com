@@ -20,7 +20,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ./backend/.env
+      - ./.env
     volumes:
       - ./data/uploads:/var/www/html/uploads
       - ./cdn/uploads:/app/cdn/uploads
@@ -54,7 +54,7 @@ services:
     ports:
       - "8001:8001"
     env_file:
-      - ./frontend/.env
+      - ./.env
     depends_on:
       - backend
     networks:
@@ -71,7 +71,7 @@ services:
     ports:
       - "8002:8002"
     env_file:
-      - ./admin/.env
+      - ./.env
     depends_on:
       - backend
     networks:

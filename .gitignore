@@ -18,6 +18,8 @@
 *.pem
 *.key
 *.crt
+*.env.txt
+env.txt
 
 # ==========================================
 # DEPENDENCIES & LOGS
