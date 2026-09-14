@@ -1,6 +1,6 @@
 export const siteName = "Remote JobsHive";
-export const website = "https://remotejobshive.co";
-// export const backend = "https://api.remotejobshive.co";
+export const website = "https://remotejobshive.com";
+// export const backend = "https://api.remotejobshive.com";
 export const backend = typeof window === 'undefined'
   ? (process.env.INTERNAL_API_URL || 'http://remotejobshive-backend:8000')
   : process.env.NEXT_PUBLIC_API_URL;

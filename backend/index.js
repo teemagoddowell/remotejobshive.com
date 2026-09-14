@@ -38,7 +38,7 @@ const sesV2Client = new SESv2Client({
 });
 
 export const sendEmail = async (to, subject, html, fromAddress, fromName, addUnsubscribe = true) => {
-    const fullFromAddress = `"${fromName}" <${fromAddress}@remotejobshive.co>`;
+    const fullFromAddress = `"${fromName}" <${fromAddress}@remotejobshive.com>`;
 
     const params = {
         FromEmailAddress: fullFromAddress,
@@ -1817,7 +1817,7 @@ app.post("/contact", async (req, res) => {
         const fromName = "Remote JobsHive Ltd"
 
         await sendEmail(
-            'teema@remotejobshive.co',
+            'teema@remotejobshive.com',
             emailSubject,
             emailHtml,
             fromAddress,

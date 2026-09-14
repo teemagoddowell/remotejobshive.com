@@ -74,7 +74,7 @@ async function processJobAlerts() {
                     let allJobsHtml = '';
                     matchingJobs.forEach(job => {
                         let itemHtml = jobCardTemplate;
-                        itemHtml = itemHtml.replace(/\[Job URL\]/g, `https://www.remotejobshive.co/job/${job.slug}`);
+                        itemHtml = itemHtml.replace(/\[Job URL\]/g, `https://www.remotejobshive.com/job/${job.slug}`);
                         itemHtml = itemHtml.replace('[Job Title]', job.title);
                         itemHtml = itemHtml.replace('[Company Name]', job.company_name);
                         itemHtml = itemHtml.replace('[Job Location]', job.job_location || 'Remote');

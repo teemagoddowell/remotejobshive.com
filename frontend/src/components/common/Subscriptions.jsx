@@ -79,7 +79,7 @@ function SubscriptionPlan(props) {
                 payment_plan: plan.fw_plan_id,
                 customizations: {
                     title: `${myStatus} ${plan.plan_name} Subscription`,
-                    logo: 'https://remotejobshive.co/favicon.ico',
+                    logo: 'https://remotejobshive.com/favicon.ico',
                 },
                 callback: function (data) {
                     if (data.status === "successful") {
