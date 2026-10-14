@@ -40,40 +40,6 @@ export const UnlockIcon = () =>  <svg width="20" height="20" viewBox="0 0 24 24"
 export const CloseIcon = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
 export const SearchIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;  
 
-// Test Plans
-// export const plans = [
-//     {
-//       id: 1,
-//       name: 'Weekly',
-//       price: 5,
-//       period: '/ week',
-//       features: ['Weekly Subscription', 'Unlock all jobs', 'Cancel Anytime'],
-//       isPopular: false,
-//       fw_plan_id: 226335,
-//       plan_name: 'HIVE-PRO Weekly',
-//     },
-//     {   
-//       id: 2,
-//       name: 'Monthly',
-//       price: 15,
-//       period: '/ month',
-//       features: ['Monthly Subscription', 'Unlock all jobs', 'Cancel Anytime'],
-//       isPopular: true,
-//       fw_plan_id: 226336,
-//       plan_name: 'HIVE-PRO Monthly',
-//     },
-//     {
-//       id: 3,  
-//       name: 'Yearly',
-//       price: 50,
-//       period: '/ year',
-//       features: ['Yearly Subscription', 'Unlock all jobs', 'Cancel Anytime'],
-//       isPopular: false,
-//       fw_plan_id: 226337,
-//       plan_name: 'HIVE-PRO Yearly',
-//     },
-// ];
-
 // Live Plans 
 const featuresList = ['Unlock all jobs', 'No Ads', 'Save Jobs', 'Track Applications'];
 
@@ -81,31 +47,31 @@ export const plans = [
     {
       id: 1,
       name: 'Weekly',
-      price: 5,
+      price: 2.99,
       period: '/ week',
       features: featuresList,
       isPopular: false,
-      fw_plan_id: 147983,
+      fw_plan_id: 171831,
       plan_name: 'HIVE-PRO Weekly',
     },
     {   
       id: 2,
       name: 'Monthly',
-      price: 15,
+      price: 4.99,
       period: '/ month',
       features: featuresList,
       isPopular: true,
-      fw_plan_id: 147984,
+      fw_plan_id: 171832,
       plan_name: 'HIVE-PRO Monthly',
     },
     {
       id: 3,  
       name: 'Yearly',
-      price: 50,
+      price: 19.99,
       period: '/ year',
       features: featuresList,
       isPopular: false,
-      fw_plan_id: 147985,
+      fw_plan_id: 171833,
       plan_name: 'HIVE-PRO Yearly',
     },
 ];
@@ -114,11 +80,11 @@ export const recruiterPlans = [
     {
       id: 4,
       name: 'HIVER-PRO',
-      price: 100,
-      period: 'Lifetime',
-      fw_plan_id: 21092000,
+      price: 39.99,
+      period: 'Yearly',
+      fw_plan_id: 171834,
       features: ['Post Unlimited Jobs', 'View All Applicant Resumes', 'Company Profile Branding','Priority Job Listings', 'Dedicated Support'],
-      plan_name: 'HIVER-PRO Lifetime',
+      plan_name: 'HIVER-PRO Yearly',
     },
 ];
 

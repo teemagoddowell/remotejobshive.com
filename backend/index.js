@@ -1266,7 +1266,7 @@ app.post("/payments/verify", authenticateToken, async (req, res) => {
 
                     if (currentUser.role === 'recruiter'){
                         emailHtml = emailHtml
-                        .replace('[New End Date]', 'Lifetime')
+                        .replace('[New End Date]', 'Yearly')
                         .replace('[User Name]', currentUser.full_name)
                         .replace('[Plan Name]', planDetails.name);
                     } else {
@@ -1314,7 +1314,7 @@ app.post("/payments/verify", authenticateToken, async (req, res) => {
 
                     if (currentUser.role === 'recruiter'){
                         emailHtml = emailHtml
-                        .replace('[End Date]', 'Lifetime')
+                        .replace('[End Date]', 'Yearly')
                         .replace('[User Name]', currentUser.full_name)
                         .replace('[Plan Name]', planDetails.name);
                     } else {
