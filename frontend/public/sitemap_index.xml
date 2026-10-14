@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://remotejobshive.com/sitemap-pages.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://remotejobshive.com/sitemap-countries.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://remotejobshive.com/sitemap/sitemap-jobs.xml</loc>
+  </sitemap>
+  <sitemap>
+    <loc>https://remotejobshive.com/sitemap/sitemap-companies.xml</loc>
+  </sitemap>
+</sitemapindex>

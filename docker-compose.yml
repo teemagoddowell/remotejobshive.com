@@ -24,6 +24,7 @@ services:
     volumes:
       - ./data/uploads:/var/www/html/uploads
       - ./cdn/uploads:/app/cdn/uploads
+      - ./frontend/public:/usr/src/app/sitemap
     depends_on:
       - db
     networks:
@@ -58,6 +59,8 @@ services:
       - ./.env
     depends_on:
       - backend
+    volumes:
+      - ./frontend/public:/app/public
     networks:
       - jobshive-net
 

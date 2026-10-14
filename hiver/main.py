@@ -18,14 +18,14 @@ genai.configure(api_key=GEMINI_API_KEY)
 HIVER_API_KEY = os.getenv("SCRAPER_API_KEY")
 HIVER_ENDPOINT = os.getenv("HIVER_ENDPOINT", "https://api.remotejobshive.com/hiver/add-job")
 
-ROCKETSHIP_API_KEY = os.getenv("REMOTE_ROCKETSHIP_API_KEY").strip()
+ROCKETSHIP_API_KEY = os.getenv("REMOTE_ROCKETSHIP_API_KEY", "").strip()
 ROCKETSHIP_ENDPOINT = "https://www.remoterocketship.com/api/openclaw/jobs/"
 
-# Paths: Defaults to mounted container directory or local fallback
 DATA_DIR = os.getenv("DATA_DIR", "./data")
 os.makedirs(DATA_DIR, exist_ok=True)
 SEEN_FILE = os.path.join(DATA_DIR, "seen.json")
 FAILED_FILE = os.path.join(DATA_DIR, "failed.json")
+TRACKER_FILE = os.path.join(DATA_DIR, "tracker.json")
 
 CDN_LOGOS_DIR = os.getenv("CDN_LOGOS_DIR", "./logos")
 CDN_PUBLIC_BASE_URL = os.getenv("CDN_PUBLIC_BASE_URL", "https://cdn.remotejobshive.com/logos")
@@ -220,418 +220,91 @@ locations = {
 }
 
 skills = {
-    1056: ".NET",
-    1057: "AEM",
-    1058: "Airflow",
-    1059: "Akka",
-    1060: "Amazon Redshift",
-    1061: "Android",
-    1062: "Angular",
-    1063: "Ansible",
-    1064: "Apache",
-    1065: "Apollo",
-    1066: "ASP.NET",
-    1067: "Assembly",
-    1068: "AWS",
-    1069: "Axio",
-    1070: "Axure",
-    1071: "Azure",
-    1072: "Babel",
-    1073: "Backbone",
-    1074: "Bash",
-    1075: "Benchmarks",
-    1076: "BigQuery",
-    1077: "Bootstrap",
-    1078: "C#",
-    1079: "C++",
-    1080: "Caffe",
-    1081: "Cassandra",
-    1082: "Chai",
-    1083: "Chef",
-    1084: "Citrix",
-    1085: "Classic ASP",
-    1086: "Clojure",
-    1087: "Cloud",
-    1088: "Cognos",
-    1089: "Consul",
-    1090: "Cyber Security",
-    1091: "Cypress",
-    1092: "D3.js",
-    1093: "DAC",
-    1094: "Dagger",
-    1095: "Dart",
-    1096: "Delphi",
-    1097: "Distributed Systems",
-    1098: "Django",
-    1099: "DNS",
-    1100: "Docker",
-    1101: "Drupal",
-    1102: "DynamoDB",
-    1103: "EC2",
-    1104: "ElasticSearch",
-    1105: "Electron",
-    1106: "Elixir",
-    1107: "Ember.js",
-    1108: "Entity Framework",
-    1109: "Erlang",
-    1110: "ERP",
-    1111: "ETL",
-    1112: "FFmpeg",
-    1113: "Firebase",
-    1114: "Firewalls",
-    1115: "Flash",
-    1116: "Flask",
-    1117: "Flutter",
-    1118: "Flux",
-    1119: "Gatsby",
-    1120: "GCP",
-    1121: "Go",
-    1122: "Google Cloud Platform",
-    1123: "Gradle",
-    1124: "Grafana",
-    1125: "Graphite",
-    1126: "GraphQL",
-    1127: "Greenplum",
-    1128: "Groovy",
-    1129: "GRPC",
-    1130: "Guidewire",
-    1131: "GWT",
-    1132: "Hadoop",
-    1133: "HAProxy",
-    1134: "Haskell",
-    1135: "HBase",
-    1136: "HDFS",
-    1137: "Heroku",
-    1138: "Hibernate",
-    1139: "Informatica",
-    1140: "Invision",
-    1141: "Ionic",
-    1142: "iOS",
-    1143: "IoT",
-    1144: "IPFS",
-    1145: "ITSM",
-    1146: "J2EE",
-    1147: "Jamf",
-    1148: "Java",
-    1149: "JavaScript",
-    1150: "Jenkins",
-    1151: "Jest",
-    1152: "JMeter",
-    1153: "Joomla",
-    1154: "jQuery",
-    1155: "JUnit",
-    1156: "Kafka",
-    1157: "Keras",
-    1158: "Kotlin",
-    1159: "Kubernetes",
-    1160: "LAMP",
-    1161: "Laravel",
-    1162: "Linux",
-    1163: "Logstash",
-    1164: "Lua",
-    1165: "MacOS",
-    1166: "Magento",
-    1167: "MapReduce",
-    1168: "MariaDB",
-    1169: "Material UI",
-    1170: "Matillion",
-    1171: "Maven",
-    1172: "Microservices",
-    1173: "MobX",
-    1174: "Mocha",
-    1175: "Mockito",
-    1176: "MongoDB",
-    1177: "MS SQL Server",
-    1178: "MySQL",
-    1179: "Neo4j",
-    1180: "Next.js",
-    1181: "NFS",
-    1182: "NGINX",
-    1183: "Node.js",
-    1184: "NoSQL",
-    1185: "Numpy",
-    1186: "Nuxt",
-    1187: "Objective-C",
-    1188: "Open Source",
-    1189: "OpenCV",
-    1190: "OpenShift",
-    1191: "OpenStack",
-    1192: "Oracle",
-    1193: "Oracle ERP",
-    1194: "Packer",
-    1195: "PagerDuty",
-    1196: "Pandas",
-    1197: "Perl",
-    1198: "PHP",
-    1199: "PMP",
-    1200: "PostGIS",
-    1201: "Postgres",
-    1202: "Prometheus",
-    1203: "Pug",
-    1204: "Pulsar",
-    1205: "Puppet",
-    1206: "Puppeteer",
-    1207: "PySpark",
-    1208: "Python",
-    1209: "PyTorch",
-    1210: "Qt",
-    1211: "RabbitMQ",
-    1212: "Ray",
-    1213: "RDBMS",
-    1214: "React",
-    1215: "React Native",
-    1216: "Realm",
-    1217: "Redis",
-    1218: "Redux",
-    1219: "Remote Sensing",
-    1220: "Roku",
-    1221: "RPA",
-    1222: "RSpec",
-    1223: "RTOS",
-    1224: "Ruby",
-    1225: "Ruby on Rails",
-    1226: "Rust",
-    1227: "RxJava",
-    1228: "RxJS",
-    1229: "RxSwift",
-    1230: "SaltStack",
-    1231: "Scala",
-    1232: "Scikit-Learn",
-    1233: "SCSS",
-    1234: "SDLC",
-    1235: "Selenium",
-    1236: "ServiceNow",
-    1237: "SFDC",
-    1238: "Shell Scripting",
-    1239: "Sitecore",
-    1240: "SMTP",
-    1241: "SOAP",
-    1242: "Solidity",
-    1243: "Spark",
-    1244: "Spinnaker",
-    1245: "Splunk",
-    1246: "Spring",
-    1247: "Spring Boot",
-    1248: "Spring Framework",
-    1249: "SQL",
-    1250: "SQLite",
-    1251: "SSIS",
-    1252: "Subversion",
-    1253: "Svelte",
-    1254: "Swift",
-    1255: "Switching",
-    1256: "Symfony",
-    1257: "Tableau",
-    1258: "TCP/IP",
-    1259: "Tensorflow",
-    1260: "Terraform",
-    1261: "TFS",
-    1262: "Thrift",
-    1263: "TypeScript",
-    1264: "Unity",
-    1265: "Unix",
-    1266: "Vagrant",
-    1267: "Vault",
-    1268: "VBA",
-    1269: "Visualforce",
-    1270: "VMware",
-    1271: "VoIP",
-    1272: "Vue.js",
-    1273: "Webpack",
-    1274: "WordPress",
-    1275: "WPF",
-    1276: "Yarn",
-    1277: "Zend",
-    1278: "Zookeeper",
-    1279: "Agile",
-    1280: "Scrum",
-    1281: "Kanban",
-    1282: "DevOps",
-    1283: "CI/CD",
-    1284: "Git",
-    1285: "GitHub",
-    1286: "GitLab",
-    1287: "Bitbucket",
-    1288: "Jira",
-    1289: "Confluence",
-    1290: "Trello",
-    1291: "Slack",
-    1292: "Figma",
-    1293: "Adobe XD",
-    1294: "Photoshop",
-    1295: "Illustrator",
-    1296: "After Effects",
-    1297: "Premiere Pro",
-    1298: "UX Design",
-    1299: "UI Design",
-    1300: "Wireframing",
-    1301: "Prototyping",
-    1302: "Data Analysis",
-    1303: "Data Engineering",
-    1304: "Machine Learning",
-    1305: "Deep Learning",
-    1306: "Artificial Intelligence",
-    1307: "Natural Language Processing",
-    1308: "Computer Vision",
-    1309: "Business Intelligence",
-    1310: "Power BI",
-    1311: "Looker",
-    1312: "Snowflake",
-    1313: "Data Warehousing",
-    1314: "Data Mining",
-    1315: "ETL Pipelines",
-    1316: "CloudFormation",
-    1317: "Ansible Tower",
-    1318: "Jenkins Pipelines",
-    1319: "Monitoring",
-    1320: "Observability",
-    1321: "Kibana",
-    1322: "New Relic",
-    1323: "Datadog",
-    1324: "Cybersecurity",
-    1325: "Penetration Testing",
-    1326: "Ethical Hacking",
-    1327: "Network Security",
-    1328: "Information Security",
-    1329: "ITIL",
-    1330: "Blockchain",
-    1331: "Cryptography",
-    1332: "AR/VR Development",
-    1333: "Game Development",
-    1334: "Unity 3D",
-    1335: "Unreal Engine",
-    1336: "Robotics",
-    1337: "Embedded Systems",
-    1338: "Mobile Development",
-    1339: "Cross-Platform Development"
+    1056: ".NET", 1057: "AEM", 1058: "Airflow", 1059: "Akka", 1060: "Amazon Redshift",
+    1061: "Android", 1062: "Angular", 1063: "Ansible", 1064: "Apache", 1065: "Apollo",
+    1066: "ASP.NET", 1067: "Assembly", 1068: "AWS", 1069: "Axio", 1070: "Axure",
+    1071: "Azure", 1072: "Babel", 1073: "Backbone", 1074: "Bash", 1075: "Benchmarks",
+    1076: "BigQuery", 1077: "Bootstrap", 1078: "C#", 1079: "C++", 1080: "Caffe",
+    1081: "Cassandra", 1082: "Chai", 1083: "Chef", 1084: "Citrix", 1085: "Classic ASP",
+    1086: "Clojure", 1087: "Cloud", 1088: "Cognos", 1089: "Consul", 1090: "Cyber Security",
+    1091: "Cypress", 1092: "D3.js", 1093: "DAC", 1094: "Dagger", 1095: "Dart",
+    1096: "Delphi", 1097: "Distributed Systems", 1098: "Django", 1099: "DNS", 1100: "Docker",
+    1101: "Drupal", 1102: "DynamoDB", 1103: "EC2", 1104: "ElasticSearch", 1105: "Electron",
+    1106: "Elixir", 1107: "Ember.js", 1108: "Entity Framework", 1109: "Erlang", 1110: "ERP",
+    1111: "ETL", 1112: "FFmpeg", 1113: "Firebase", 1114: "Firewalls", 1115: "Flash",
+    1116: "Flask", 1117: "Flutter", 1118: "Flux", 1119: "Gatsby", 1120: "GCP",
+    1121: "Go", 1122: "Google Cloud Platform", 1123: "Gradle", 1124: "Grafana", 1125: "Graphite",
+    1126: "GraphQL", 1127: "Greenplum", 1128: "Groovy", 1129: "GRPC", 1130: "Guidewire",
+    1131: "GWT", 1132: "Hadoop", 1133: "HAProxy", 1134: "Haskell", 1135: "HBase",
+    1136: "HDFS", 1137: "Heroku", 1138: "Hibernate", 1139: "Informatica", 1140: "Invision",
+    1141: "Ionic", 1142: "iOS", 1143: "IoT", 1144: "IPFS", 1145: "ITSM",
+    1146: "J2EE", 1147: "Jamf", 1148: "Java", 1149: "JavaScript", 1150: "Jenkins",
+    1151: "Jest", 1152: "JMeter", 1153: "Joomla", 1154: "jQuery", 1155: "JUnit",
+    1156: "Kafka", 1157: "Keras", 1158: "Kotlin", 1159: "Kubernetes", 1160: "LAMP",
+    1161: "Laravel", 1162: "Linux", 1163: "Logstash", 1164: "Lua", 1165: "MacOS",
+    1166: "Magento", 1167: "MapReduce", 1168: "MariaDB", 1169: "Material UI", 1170: "Matillion",
+    1171: "Maven", 1172: "Microservices", 1173: "MobX", 1174: "Mocha", 1175: "Mockito",
+    1176: "MongoDB", 1177: "MS SQL Server", 1178: "MySQL", 1179: "Neo4j", 1180: "Next.js",
+    1181: "NFS", 1182: "NGINX", 1183: "Node.js", 1184: "NoSQL", 1185: "Numpy",
+    1186: "Nuxt", 1187: "Objective-C", 1188: "Open Source", 1189: "OpenCV", 1190: "OpenShift",
+    1191: "OpenStack", 1192: "Oracle", 1193: "Oracle ERP", 1194: "Packer", 1195: "PagerDuty",
+    1196: "Pandas", 1197: "Perl", 1198: "PHP", 1199: "PMP", 1200: "PostGIS",
+    1201: "Postgres", 1202: "Prometheus", 1203: "Pug", 1204: "Pulsar", 1205: "Puppet",
+    1206: "Puppeteer", 1207: "PySpark", 1208: "Python", 1209: "PyTorch", 1210: "Qt",
+    1211: "RabbitMQ", 1212: "Ray", 1213: "RDBMS", 1214: "React", 1215: "React Native",
+    1216: "Realm", 1217: "Redis", 1218: "Redux", 1219: "Remote Sensing", 1220: "Roku",
+    1221: "RPA", 1222: "RSpec", 1223: "RTOS", 1224: "Ruby", 1225: "Ruby on Rails",
+    1226: "Rust", 1227: "RxJava", 1228: "RxJS", 1229: "RxSwift", 1230: "SaltStack",
+    1231: "Scala", 1232: "Scikit-Learn", 1233: "SCSS", 1234: "SDLC", 1235: "Selenium",
+    1236: "ServiceNow", 1237: "SFDC", 1238: "Shell Scripting", 1239: "Sitecore", 1240: "SMTP",
+    1241: "SOAP", 1242: "Solidity", 1243: "Spark", 1244: "Spinnaker", 1245: "Splunk",
+    1246: "Spring", 1247: "Spring Boot", 1248: "Spring Framework", 1249: "SQL", 1250: "SQLite",
+    1251: "SSIS", 1252: "Subversion", 1253: "Svelte", 1254: "Swift", 1255: "Switching",
+    1256: "Symfony", 1257: "Tableau", 1258: "TCP/IP", 1259: "Tensorflow", 1260: "Terraform",
+    1261: "TFS", 1262: "Thrift", 1263: "TypeScript", 1264: "Unity", 1265: "Unix",
+    1266: "Vagrant", 1267: "Vault", 1268: "VBA", 1269: "Visualforce", 1270: "VMware",
+    1271: "VoIP", 1272: "Vue.js", 1273: "Webpack", 1274: "WordPress", 1275: "WPF",
+    1276: "Yarn", 1277: "Zend", 1278: "Zookeeper", 1279: "Agile", 1280: "Scrum",
+    1281: "Kanban", 1282: "DevOps", 1283: "CI/CD", 1284: "Git", 1285: "GitHub",
+    1286: "GitLab", 1287: "Bitbucket", 1288: "Jira", 1289: "Confluence", 1290: "Trello",
+    1291: "Slack", 1292: "Figma", 1293: "Adobe XD", 1294: "Photoshop", 1295: "Illustrator",
+    1296: "After Effects", 1297: "Premiere Pro", 1298: "UX Design", 1299: "UI Design", 1300: "Wireframing",
+    1301: "Prototyping", 1302: "Data Analysis", 1303: "Data Engineering", 1304: "Machine Learning", 1305: "Deep Learning",
+    1306: "Artificial Intelligence", 1307: "Natural Language Processing", 1308: "Computer Vision", 1309: "Business Intelligence", 1310: "Power BI",
+    1311: "Looker", 1312: "Snowflake", 1313: "Data Warehousing", 1314: "Data Mining", 1315: "ETL Pipelines",
+    1316: "CloudFormation", 1317: "Ansible Tower", 1318: "Jenkins Pipelines", 1319: "Monitoring", 1320: "Observability",
+    1321: "Kibana", 1322: "New Relic", 1323: "Datadog", 1324: "Cybersecurity", 1325: "Penetration Testing",
+    1326: "Ethical Hacking", 1327: "Network Security", 1328: "Information Security", 1329: "ITIL", 1330: "Blockchain",
+    1331: "Cryptography", 1332: "AR/VR Development", 1333: "Game Development", 1334: "Unity 3D", 1335: "Unreal Engine",
+    1336: "Robotics", 1337: "Embedded Systems", 1338: "Mobile Development", 1339: "Cross-Platform Development"
 }
 
 job_titles = {
-    1: "2D Artist",
-    2: "3D Artist",
-    3: "Account Executive",
-    4: "Account Manager",
-    5: "Accountant",
-    6: "Accounts Payable/Receivable",
-    7: "Actuary",
-    8: "Administrative Assistant",
-    9: "Affiliate Manager",
-    10: "Agile Coach / Scrum Master",
-    11: "AI Engineer",
-    12: "Android Engineer",
-    13: "Application Engineer",
-    14: "Art Director",
-    15: "Auditor",
-    16: "Backend Engineer",
-    17: "Blockchain Engineer",
-    18: "Bookkeeper",
-    19: "Brand Ambassador",
-    20: "Brand Designer",
-    21: "Brand Manager",
-    22: "Business Analyst",
-    23: "Business Development",
-    24: "Business Intelligence Analyst",
-    25: "Business Intelligence Developer",
-    26: "Chief Marketing Officer (CMO)",
-    27: "Chief of Staff",
-    28: "Chief Operating Officer (COO)",
-    29: "Client Services",
-    30: "Cloud Engineer",
-    31: "Community Manager",
-    32: "Compliance Officer",
-    33: "Computer Vision Engineer",
-    34: "Content Creator",
-    35: "Content Marketing Manager",
-    36: "Content Manager",
-    37: "Copywriter",
-    38: "Customer Advocate",
-    39: "Customer Retention Specialist",
-    40: "Customer Success Manager",
-    41: "Customer Support Specialist",
-    42: "Data Analyst",
-    43: "Data Engineer",
-    44: "Data Scientist",
-    45: "Designer",
-    46: "Developer Relations (DevRel)",
-    47: "DevOps & Site Reliability Engineer",
-    48: "Digital Marketing Manager",
-    49: "Email Marketing Manager",
-    50: "Engineering Manager",
-    51: "Executive Assistant",
-    52: "Financial Analyst",
-    53: "Financial Controller",
-    54: "Frontend Engineer",
-    55: "Full-stack Engineer",
-    56: "Game Engineer",
-    57: "General Counsel",
-    58: "Graphic Designer",
-    59: "Growth Marketing Manager",
-    60: "Hardware Engineer",
-    61: "Human Resources (HR)",
-    62: "Implementation Specialist",
-    63: "IT Support",
-    64: "Lead Generation Specialist",
-    65: "Legal Assistant",
-    66: "LLM Engineer",
-    67: "Machine Learning Engineer",
-    68: "Marketing Analyst",
-    69: "Marketing Manager",
-    70: "Marketing Operations",
-    71: "Mobile Developer",
-    72: "Network Engineer",
-    73: "NLP Engineer",
-    74: "Onboarding Specialist",
-    75: "Operations Manager",
-    76: "Paralegal",
-    77: "People Operations",
-    78: "Performance Marketing",
-    79: "Platform Engineer",
-    80: "Pre-sales Engineer",
-    81: "Producer",
-    82: "Product Analyst",
-    83: "Product Designer (UI/UX)",
-    84: "Product Manager",
-    85: "Product Marketing Manager",
-    86: "Product Operations Specialist",
-    87: "Product Specialist",
-    88: "Program Manager",
-    89: "Project Manager",
-    90: "Public Relations (PR)",
-    91: "QA Automation Engineer",
-    92: "QA Engineer",
-    93: "Recruiter",
-    94: "Research Analyst",
-    95: "Research Engineer",
-    96: "Research Scientist",
-    97: "Revenue Operations",
-    98: "Robotics Engineer",
-    99: "Sales Development Representative (SDR)",
-    100: "Sales Engineer",
-    101: "Sales Manager",
-    102: "Sales Operations",
-    103: "Salesforce Administrator",
-    104: "Salesforce Developer",
-    105: "SAP Consultant",
-    106: "Security Engineer / Cybersecurity",
-    107: "ServiceNow Developer",
-    108: "SEO Specialist",
-    109: "Smart Contract Engineer",
-    110: "Social Media Manager",
-    111: "Software Engineer",
-    112: "Solutions Engineer",
-    113: "Strategy Manager",
-    114: "Support Engineer",
-    115: "Systems Administrator",
-    116: "Systems Engineer",
-    117: "Tax Specialist",
-    118: "Technical Account Manager",
-    119: "Technical Customer Support",
-    120: "Technical Product Manager",
-    121: "Technical Program Manager",
-    122: "Technical Recruiter",
-    123: "UX Researcher",
-    124: "Video Editor",
-    125: "Web Designer"
+    1: "2D Artist", 2: "3D Artist", 3: "Account Executive", 4: "Account Manager", 5: "Accountant",
+    6: "Accounts Payable/Receivable", 7: "Actuary", 8: "Administrative Assistant", 9: "Affiliate Manager", 10: "Agile Coach / Scrum Master",
+    11: "AI Engineer", 12: "Android Engineer", 13: "Application Engineer", 14: "Art Director", 15: "Auditor",
+    16: "Backend Engineer", 17: "Blockchain Engineer", 18: "Bookkeeper", 19: "Brand Ambassador", 20: "Brand Designer",
+    21: "Brand Manager", 22: "Business Analyst", 23: "Business Development", 24: "Business Intelligence Analyst", 25: "Business Intelligence Developer",
+    26: "Chief Marketing Officer (CMO)", 27: "Chief of Staff", 28: "Chief Operating Officer (COO)", 29: "Client Services", 30: "Cloud Engineer",
+    31: "Community Manager", 32: "Compliance Officer", 33: "Computer Vision Engineer", 34: "Content Creator", 35: "Content Marketing Manager",
+    36: "Content Manager", 37: "Copywriter", 38: "Customer Advocate", 39: "Customer Retention Specialist", 40: "Customer Success Manager",
+    41: "Customer Support Specialist", 42: "Data Analyst", 43: "Data Engineer", 44: "Data Scientist", 45: "Designer",
+    46: "Developer Relations (DevRel)", 47: "DevOps & Site Reliability Engineer", 48: "Digital Marketing Manager", 49: "Email Marketing Manager", 50: "Engineering Manager",
+    51: "Executive Assistant", 52: "Financial Analyst", 53: "Financial Controller", 54: "Frontend Engineer", 55: "Full-stack Engineer",
+    56: "Game Engineer", 57: "General Counsel", 58: "Graphic Designer", 59: "Growth Marketing Manager", 60: "Hardware Engineer",
+    61: "Human Resources (HR)", 62: "Implementation Specialist", 63: "IT Support", 64: "Lead Generation Specialist", 65: "Legal Assistant",
+    66: "LLM Engineer", 67: "Machine Learning Engineer", 68: "Marketing Analyst", 69: "Marketing Manager", 70: "Marketing Operations",
+    71: "Mobile Developer", 72: "Network Engineer", 73: "NLP Engineer", 74: "Onboarding Specialist", 75: "Operations Manager",
+    76: "Paralegal", 77: "People Operations", 78: "Performance Marketing", 79: "Platform Engineer", 80: "Pre-sales Engineer",
+    81: "Producer", 82: "Product Analyst", 83: "Product Designer (UI/UX)", 84: "Product Manager", 85: "Product Marketing Manager",
+    86: "Product Operations Specialist", 87: "Product Specialist", 88: "Program Manager", 89: "Project Manager", 90: "Public Relations (PR)",
+    91: "QA Automation Engineer", 92: "QA Engineer", 93: "Recruiter", 94: "Research Analyst", 95: "Research Engineer",
+    96: "Research Scientist", 97: "Revenue Operations", 98: "Robotics Engineer", 99: "Sales Development Representative (SDR)", 100: "Sales Engineer",
+    101: "Sales Manager", 102: "Sales Operations", 103: "Salesforce Administrator", 104: "Salesforce Developer", 105: "SAP Consultant",
+    106: "Security Engineer / Cybersecurity", 107: "ServiceNow Developer", 108: "SEO Specialist", 109: "Smart Contract Engineer", 110: "Social Media Manager",
+    111: "Software Engineer", 112: "Solutions Engineer", 113: "Strategy Manager", 114: "Support Engineer", 115: "Systems Administrator",
+    116: "Systems Engineer", 117: "Tax Specialist", 118: "Technical Account Manager", 119: "Technical Customer Support", 120: "Technical Product Manager",
+    121: "Technical Program Manager", 122: "Technical Recruiter", 123: "UX Researcher", 124: "Video Editor", 125: "Web Designer"
 }
 
 def load_set(filepath):
@@ -646,6 +319,20 @@ def load_set(filepath):
 def save_set(data_set, filepath):
     with open(filepath, 'w') as f:
         json.dump(list(data_set), f, indent=2)
+
+def get_last_page():
+    if not os.path.exists(TRACKER_FILE):
+        return 1
+    try:
+        with open(TRACKER_FILE, 'r') as f:
+            data = json.load(f)
+            return data.get("last_page", 1)
+    except Exception:
+        return 1
+
+def save_last_page(page):
+    with open(TRACKER_FILE, 'w') as f:
+        json.dump({"last_page": page, "updated_at": time.time()}, f, indent=2)
 
 def save_logo_to_cdn(image_url, company_name="company"):
     if not image_url or not str(image_url).startswith("http"):
@@ -677,7 +364,6 @@ def save_logo_to_cdn(image_url, company_name="company"):
         print(f"    [!] Failed to save logo locally ({e}), falling back to remote URL.")
         return image_url
 
-# def fetch_latest_page(page=1, items_per_page=15):
 def fetch_latest_page(page=1, items_per_page=50):
     headers = {
         "Authorization": f"Bearer {ROCKETSHIP_API_KEY}",
@@ -689,10 +375,13 @@ def fetch_latest_page(page=1, items_per_page=50):
         "Referer": "https://www.remoterocketship.com/"
     }
 
+    # Upstream filters enforce salary at the API level before consuming quota
     payload = {
         "filters": {
             "page": page,
             "itemsPerPage": items_per_page,
+            "hasSalary": True,
+            "minSalary": 10000,
             "jobTitleFilters": [
                 "Full Stack Engineer",
                 "Software Engineer",
@@ -722,9 +411,9 @@ def clean_and_rewrite_with_gemini(raw_job):
     Analyze the following raw job posting data. Your task is to rewrite the textual fields for high-ranking SEO and zero duplicate content penalties, while matching the schema IDs accurately.
 
     Return ONLY a single valid JSON object (no markdown quotes, no triple backticks) with these exact keys:
-    "title", "job_titles", "description", "excerpts", "requirements", "date_posted", "benefits", 
-    "job_type", "job_position", "department", "job_experience", "salary_min", "salary_max", 
-    "currency", "salary_period", "visa_sponsorship", "degree_required", "apply_url", "location", 
+    "title", "job_titles", "description", "excerpts", "requirements", "date_posted", "benefits",
+    "job_type", "job_position", "department", "job_experience", "salary_min", "salary_max",
+    "currency", "salary_period", "visa_sponsorship", "degree_required", "apply_url", "location",
     "company_name", "company_logo", "skills", "about_company", "company_linkedin", "company_website".
 
     Rules:
@@ -765,26 +454,28 @@ def push_to_hive(payload):
     res.raise_for_status()
     print("    -> Successfully synced to RemoteJobsHive backend.")
 
-# def run_pipeline(target_count=15):
 def run_pipeline(target_count=50):
     seen = load_set(SEEN_FILE)
     failed = load_set(FAILED_FILE)
 
-    page = 1
+    current_page = get_last_page()
     added_count = 0
+    pages_processed = 0
 
     print(f"\n=======================================================")
-    print(f"[*] Starting Sync Run: Target = {target_count} jobs with salary")
-    print(f"[*] Total previously seen: {len(seen)}")
+    print(f"[*] Starting Optimized Sync Run: Target = {target_count} jobs with salary")
+    print(f"[*] Resuming from Page: {current_page}")
+    print(f"[*] Total previously seen entries: {len(seen)}")
     print(f"=======================================================\n")
 
     while added_count < target_count:
-        print(f"[*] Requesting Page {page} from Remote Rocketship...")
-        batch, has_next = fetch_latest_page(page=page, items_per_page=50)
-        # batch, has_next = fetch_latest_page(page=page, items_per_page=15)
+        print(f"[*] Requesting Page {current_page} (50 items/page) from Remote Rocketship...")
+        batch, has_next = fetch_latest_page(page=current_page, items_per_page=50)
+        pages_processed += 1
 
         if not batch:
-            print("[*] No more jobs available from API.")
+            print("[*] No more jobs found on this page. Resetting tracker to page 1 for future runs.")
+            save_last_page(1)
             break
 
         for raw_job in batch:
@@ -798,16 +489,22 @@ def run_pipeline(target_count=50):
             salary_obj = raw_job.get("salaryRange")
 
             # 1. Deduplication check
-            if job_id in seen or apply_url in seen:
+            if job_id in seen or (apply_url and apply_url in seen):
                 continue
 
             # 2. Blacklist check
             if company.lower() in blacklisted_companies:
                 seen.add(job_id)
+                if apply_url:
+                    seen.add(apply_url)
                 continue
 
-            # 3. Mandatory salary filter
+            # 3. Strict salary verification
             if not salary_obj or (not salary_obj.get("min") and not salary_obj.get("max")):
+                # Mark as seen so this invalid listing is NEVER re-evaluated
+                seen.add(job_id)
+                if apply_url:
+                    seen.add(apply_url)
                 continue
 
             print(f"\n[{added_count + 1}/{target_count}] Processing: {title} @ {company}")
@@ -869,14 +566,19 @@ def run_pipeline(target_count=50):
 
             time.sleep(1)
 
+        # Persist seen set after processing the page
+        save_set(seen, SEEN_FILE)
+
         if not has_next:
-            print("[*] Reached end of available job pages.")
+            print("[*] Reached end of available job pages. Resetting tracker to page 1.")
+            save_last_page(1)
             break
 
-        page += 1
+        current_page += 1
+        save_last_page(current_page)
 
-    print(f"\n[✓] Batch finished. Successfully pushed {added_count} new listings.\n")
+    print(f"\n[✓] Batch finished. Successfully pushed {added_count} new listings.")
+    print(f"[✓] Advanced to page {current_page}. Ready for next scheduled run.\n")
 
 if __name__ == "__main__":
     run_pipeline(target_count=50)
-    # run_pipeline(target_count=15)
