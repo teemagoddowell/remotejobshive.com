@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import re
 import warnings
 from curl_cffi import requests
 import google.generativeai as genai
@@ -33,7 +34,6 @@ CDN_PUBLIC_BASE_URL = os.getenv("CDN_PUBLIC_BASE_URL", "https://cdn.remotejobshi
 blacklisted_companies = ['concentrix']
 
 # --- Reference Mappings ---
-
 locations = {
     1: "Anywhere in the World – Remote",
     2: "United States – Remote",
@@ -334,6 +334,44 @@ def save_last_page(page):
     with open(TRACKER_FILE, 'w') as f:
         json.dump({"last_page": page, "updated_at": time.time()}, f, indent=2)
 
+def extract_salary_info(raw_job):
+    """Robust extractor covering nested objects, root numbers, and string ranges."""
+    salary_obj = raw_job.get("salaryRange") or {}
+    
+    s_min = salary_obj.get("min") or raw_job.get("salaryMin") or raw_job.get("minSalary")
+    s_max = salary_obj.get("max") or raw_job.get("salaryMax") or raw_job.get("maxSalary")
+    period = salary_obj.get("salaryType") or raw_job.get("salaryPeriod") or "year"
+
+    # Fallback to string extraction if numbers are missing
+    if not s_min and not s_max:
+        raw_str = salary_obj.get("salaryHumanReadableText") or raw_job.get("salary") or ""
+        matches = re.findall(r'[\$£€]?\s*(\d+[\d,]*)', str(raw_str))
+        if matches:
+            cleaned = [int(m.replace(',', '')) for m in matches if m.replace(',', '').isdigit()]
+            if len(cleaned) == 1:
+                s_min = cleaned[0]
+            elif len(cleaned) >= 2:
+                s_min, s_max = min(cleaned), max(cleaned)
+
+    # Convert valid floats/strings to clean ints
+    try:
+        s_min = int(float(s_min)) if s_min else None
+    except (ValueError, TypeError):
+        s_min = None
+
+    try:
+        s_max = int(float(s_max)) if s_max else None
+    except (ValueError, TypeError):
+        s_max = None
+
+    if s_min or s_max:
+        return {
+            "min": s_min,
+            "max": s_max,
+            "period": f"/{period.replace('per ', '').strip()}"
+        }
+    return None
+
 def save_logo_to_cdn(image_url, company_name="company"):
     if not image_url or not str(image_url).startswith("http"):
         return None
@@ -375,40 +413,45 @@ def fetch_latest_page(page=1, items_per_page=50):
         "Referer": "https://www.remoterocketship.com/"
     }
 
-    # Upstream filters enforce salary at the API level before consuming quota
     payload = {
         "filters": {
             "page": page,
             "itemsPerPage": items_per_page,
-            "hasSalary": True,
-            "minSalary": 10000,
             "jobTitleFilters": [
                 "Full Stack Engineer",
                 "Software Engineer",
                 "Backend Engineer",
-                "Frontend Engineer"
+                "Frontend Engineer",
+                "DevOps Engineer"
             ],
-            "locationFilters": ["Worldwide", "Anywhere", "United States"]
+            "locationFilters": ["Worldwide", "Anywhere", "United States"],
+            "sortBy": "datePosted",
+            "sortOrder": "desc"
         },
         "includeJobDescription": True
     }
 
     res = requests.post(ROCKETSHIP_ENDPOINT, headers=headers, json=payload, impersonate="chrome120", timeout=30)
+    
+    if res.status_code == 429:
+        print(f"[!] Quota reached (429): {res.text}")
+        return None, False
+
     if res.status_code != 200:
         print(f"[!] API error on page {page} ({res.status_code}): {res.text}")
-        return [], False
+        return None, False
 
     data = res.json()
     batch = data.get("jobOpenings", [])
     has_next = data.get("pagination", {}).get("hasNextPage", False)
     return batch, has_next
 
-def clean_and_rewrite_with_gemini(raw_job):
-    model = genai.GenerativeModel('gemini-3.6-flash')
+def clean_and_rewrite_with_gemini(raw_job, salary_data):
+    model = genai.GenerativeModel('gemini-2.5-flash')
 
     prompt = f"""
     You are an expert SEO copywriter and technical data engineer.
-    Analyze the following raw job posting data. Your task is to rewrite the textual fields for high-ranking SEO and zero duplicate content penalties, while matching the schema IDs accurately.
+    Analyze the following raw job posting data. Rewrite textual fields for high-ranking SEO while matching the schema accurately.
 
     Return ONLY a single valid JSON object (no markdown quotes, no triple backticks) with these exact keys:
     "title", "job_titles", "description", "excerpts", "requirements", "date_posted", "benefits",
@@ -417,7 +460,7 @@ def clean_and_rewrite_with_gemini(raw_job):
     "company_name", "company_logo", "skills", "about_company", "company_linkedin", "company_website".
 
     Rules:
-    1. "description": Thoroughly rewrite into high-ranking, natural SEO copy. Keep all context, stack specifics, and core responsibilities intact. Strip all raw HTML tags.
+    1. "description": Thoroughly rewrite into high-ranking, natural SEO copy. Keep all stack specifics. Strip all HTML.
     2. "requirements": Numbered list (1., 2., 3.).
     3. "benefits": Dashed list (- Health, - 401k) or null if not found.
     4. "excerpts": Crisp meta-description summary between 150 and 175 characters.
@@ -425,11 +468,11 @@ def clean_and_rewrite_with_gemini(raw_job):
     6. "skills": Matching IDs from: {skills} as a comma-separated string (max 10).
     7. "location": Best match ID from: {locations} (default to 1).
     8. "job_position": 'Entry-Level', 'Junior', 'Mid-Level', or 'Senior'.
-    9. "salary_min" and "salary_max": Extract pure numbers from salaryRange.
-    10. "salary_period": Use '/hour', '/year', or '/month'.
-    11. "degree_required" and "visa_sponsorship": Strict booleans.
-    12. "apply_url": Preserve input apply_url exactly.
-    13. If a value is unknown, set to null.
+    9. "salary_min": {salary_data.get('min')}
+    10. "salary_max": {salary_data.get('max')}
+    11. "salary_period": "{salary_data.get('period', '/year')}"
+    12. "degree_required" and "visa_sponsorship": Strict booleans.
+    13. "apply_url": Preserve input apply_url exactly.
 
     Raw Job Input:
     {json.dumps(raw_job, indent=2)}
@@ -460,21 +503,25 @@ def run_pipeline(target_count=50):
 
     current_page = get_last_page()
     added_count = 0
-    pages_processed = 0
 
     print(f"\n=======================================================")
-    print(f"[*] Starting Optimized Sync Run: Target = {target_count} jobs with salary")
-    print(f"[*] Resuming from Page: {current_page}")
-    print(f"[*] Total previously seen entries: {len(seen)}")
+    print(f"[*] Starting Resilient Sync Run: Target = {target_count} jobs with verified salary")
+    print(f"[*] Starting at Page: {current_page}")
+    print(f"[*] Total previously cached entries: {len(seen)}")
     print(f"=======================================================\n")
 
     while added_count < target_count:
-        print(f"[*] Requesting Page {current_page} (50 items/page) from Remote Rocketship...")
+        print(f"[*] Requesting Page {current_page} (50 items) from Remote Rocketship...")
         batch, has_next = fetch_latest_page(page=current_page, items_per_page=50)
-        pages_processed += 1
 
-        if not batch:
-            print("[*] No more jobs found on this page. Resetting tracker to page 1 for future runs.")
+        # Handle API rate limit / server error without resetting progress
+        if batch is None:
+            print("[*] API halted due to error/quota. Preserving page tracker position.")
+            break
+
+        # Reached natural end of listings
+        if len(batch) == 0:
+            print("[*] Reached end of available job pages. Looping back to page 1.")
             save_last_page(1)
             break
 
@@ -486,7 +533,6 @@ def run_pipeline(target_count=50):
             apply_url = raw_job.get("url")
             company = raw_job.get("company", {}).get("name", "Unknown")
             title = raw_job.get("roleTitle", "Unknown")
-            salary_obj = raw_job.get("salaryRange")
 
             # 1. Deduplication check
             if job_id in seen or (apply_url and apply_url in seen):
@@ -499,27 +545,26 @@ def run_pipeline(target_count=50):
                     seen.add(apply_url)
                 continue
 
-            # 3. Strict salary verification
-            if not salary_obj or (not salary_obj.get("min") and not salary_obj.get("max")):
-                # Mark as seen so this invalid listing is NEVER re-evaluated
+            # 3. Robust salary extraction across all fields
+            salary_data = extract_salary_info(raw_job)
+            if not salary_data:
+                # Mark as seen so this unsalaried job is never re-processed
                 seen.add(job_id)
                 if apply_url:
                     seen.add(apply_url)
                 continue
 
             print(f"\n[{added_count + 1}/{target_count}] Processing: {title} @ {company}")
-            print(f"    Salary: {salary_obj.get('salaryHumanReadableText') or salary_obj}")
+            print(f"    Salary Found: Min={salary_data['min']}, Max={salary_data['max']}, Period={salary_data['period']}")
 
             try:
-                structured = clean_and_rewrite_with_gemini(raw_job)
+                structured = clean_and_rewrite_with_gemini(raw_job, salary_data)
                 if not structured:
                     raise ValueError("Gemini returned invalid payload")
 
-                # Local CDN Logo saving
                 raw_logo = raw_job.get("company", {}).get("logoUrl") or structured.get("company_logo")
                 cdn_logo_url = save_logo_to_cdn(raw_logo, structured.get("company_name", company))
 
-                # Assemble API payload
                 payload = {
                     "title": structured['title'],
                     "job_title": structured['job_titles'],
@@ -528,9 +573,9 @@ def run_pipeline(target_count=50):
                     "benefits": structured.get('benefits'),
                     "job_type": structured.get('job_type', 'Full-Time'),
                     "job_position": structured['job_position'],
-                    "salary_min": structured.get('salary_min') or salary_obj.get('min'),
-                    "salary_max": structured.get('salary_max') or salary_obj.get('max'),
-                    "salary": structured.get('salary_period') or (f"/{salary_obj.get('salaryType', 'year').replace('per ', '')}"),
+                    "salary_min": structured.get('salary_min') or salary_data['min'],
+                    "salary_max": structured.get('salary_max') or salary_data['max'],
+                    "salary": structured.get('salary_period') or salary_data['period'],
                     "visa_sponsorship": structured.get('visa_sponsorship', False),
                     "degree_required": structured.get('degree_required', False),
                     "apply_url": structured['apply_url'],
@@ -550,7 +595,6 @@ def run_pipeline(target_count=50):
                     "source": "hiver"
                 }
 
-                # Dispatch directly to live database
                 push_to_hive(payload)
 
                 added_count += 1
@@ -566,19 +610,18 @@ def run_pipeline(target_count=50):
 
             time.sleep(1)
 
-        # Persist seen set after processing the page
         save_set(seen, SEEN_FILE)
 
         if not has_next:
-            print("[*] Reached end of available job pages. Resetting tracker to page 1.")
+            print("[*] Reached end of pagination. Looping back to page 1.")
             save_last_page(1)
             break
 
         current_page += 1
         save_last_page(current_page)
 
-    print(f"\n[✓] Batch finished. Successfully pushed {added_count} new listings.")
-    print(f"[✓] Advanced to page {current_page}. Ready for next scheduled run.\n")
+    print(f"\n[✓] Run concluded. Added {added_count} new postings.")
+    print(f"[✓] Current tracker saved at page {current_page}.\n")
 
 if __name__ == "__main__":
     run_pipeline(target_count=50)
