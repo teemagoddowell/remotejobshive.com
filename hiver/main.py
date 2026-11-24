@@ -8,6 +8,7 @@ from curl_cffi import requests
 from openai import OpenAI
 from dotenv import load_dotenv
 from slugify import slugify
+from datetime import datetime, timezone
 
 load_dotenv()
 
@@ -343,6 +344,16 @@ def save_last_page(page):
     with open(TRACKER_FILE, 'w') as f:
         json.dump({"last_page": page, "updated_at": time.time()}, f, indent=2)
 
+def normalize_date_posted(raw_job):
+    raw_val = raw_job.get("created_at") or raw_job.get("createdAt")
+    if not raw_val:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        dt = datetime.fromisoformat(str(raw_val).replace("Z", "+00:00"))
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
 def extract_salary_info(raw_job):
     """Robust extractor covering nested objects, root numbers, and string ranges."""
     salary_obj = raw_job.get("salaryRange") or {}
@@ -494,24 +505,36 @@ def fetch_latest_page(page=1, items_per_page=50):
     return batch, has_next
 
 def clean_and_rewrite_with_llm(raw_job, salary_data):
+    company_obj = raw_job.get("company") or {}
+
     clean_input = {
         "title": raw_job.get("roleTitle"),
-        "company": raw_job.get("company", {}).get("name"),
-        "description": raw_job.get("description") or raw_job.get("jobDescription"),
-        "requirements": raw_job.get("requirements"),
+        "company": company_obj.get("name"),
+        "description": raw_job.get("roleDescription"),
+        "requirements": raw_job.get("roleRequirements"),
         "benefits": raw_job.get("benefits"),
-        "url": raw_job.get("url"),
-        "createdAt": raw_job.get("createdAt")
+        "employmentType": raw_job.get("employmentType"),
+        "seniority": {
+            "entry": raw_job.get("isEntryLevel"),
+            "junior": raw_job.get("isJunior"),
+            "mid": raw_job.get("isMidLevel"),
+            "senior": raw_job.get("isSenior"),
+            "lead": raw_job.get("isLead")
+        },
+        "industries": company_obj.get("chatGPTIndustries"),
+        "specialties": company_obj.get("industrySpecialities")
     }
 
     system_prompt = (
         "You are an expert SEO copywriter and technical data engineer. "
-        "Rewrite job listings into original, high-ranking SEO copy while preserving technical stack details. "
+        "Synthesize job postings into completely original, high-ranking SEO descriptions. "
+        "Never copy sentences or phrasing verbatim from the source text—preserve only factual "
+        "entities (tech stack, tools, salary, seniority, location) while writing fresh prose from scratch. "
         "Return ONLY a single valid JSON object matching the exact schema keys requested."
     )
 
     user_prompt = f"""
-    Rewrite and structure this job posting into JSON.
+    Synthesize and structure this job posting into original JSON content.
 
     Required JSON keys:
     "title", "job_titles", "description", "excerpts", "requirements", "date_posted", "benefits",
@@ -520,10 +543,10 @@ def clean_and_rewrite_with_llm(raw_job, salary_data):
     "company_name", "company_logo", "skills", "about_company", "company_linkedin", "company_website".
 
     Rules:
-    1. "description": Thoroughly rewrite into natural, high-ranking SEO copy. Strip raw HTML.
-    2. "requirements": Numbered list string (1., 2., 3.).
-    3. "benefits": Dashed list string (- Health, - 401k) or null.
-    4. "excerpts": Crisp meta summary between 150 and 175 characters.
+    1. "description": Write 100% original, engaging SEO copy from scratch (2-3 cohesive paragraphs). Do NOT copy or lightly paraphrase sentences from the source—restructure the narrative while keeping core responsibilities and tech stack accurate. Strip all raw HTML.
+    2. "requirements": Synthesize key qualifications into a concise, newly worded numbered list string (1., 2., 3.)—maximum 6 to 8 core items, no verbatim bullet copying.
+    3. "benefits": Concise newly phrased dashed list string (- Health, - 401k) or null.
+    4. "excerpts": Original meta summary between 150 and 175 characters.
     5. "job_titles": Single integer ID best matching the role from: {job_titles}
     6. "skills": Matching integer IDs from: {skills} as a comma-separated string (max 10).
     7. "location": Best match ID from: {locations} (default to 1).
@@ -532,9 +555,9 @@ def clean_and_rewrite_with_llm(raw_job, salary_data):
     10. "salary_max": {salary_data.get('max')}
     11. "salary_period": "{salary_data.get('period', '/year')}"
     12. "degree_required" and "visa_sponsorship": Strict booleans.
-    13. "apply_url": "{clean_input.get('url')}"
+    13. "apply_url": "{raw_job.get('url')}"
 
-    Raw Input:
+    Raw Source Facts (for synthesis only — do not copy phrasing):
     {json.dumps(clean_input, indent=2)}
     """
 
@@ -635,35 +658,36 @@ def run_pipeline(target_count=50):
                 if not structured:
                     raise ValueError("LLM returned invalid payload")
 
-                raw_logo = raw_job.get("company", {}).get("logoUrl") or structured.get("company_logo")
-                cdn_logo_url = save_logo_to_cdn(raw_logo, structured.get("company_name", company))
+                company_obj = raw_job.get("company") or {}
+                raw_logo = company_obj.get("profilePicURL") or structured.get("company_logo")
+                cdn_logo_url = save_logo_to_cdn(raw_logo, company_obj.get("name", company))
 
                 payload = {
                     "title": structured['title'],
                     "job_title": structured['job_titles'],
                     "description": structured['description'],
                     "requirements": structured['requirements'],
-                    "benefits": structured.get('benefits'),
+                    "benefits": structured.get('benefits') or raw_job.get('benefits'),
                     "job_type": structured.get('job_type', 'Full-Time'),
                     "job_position": structured['job_position'],
                     "salary_min": structured.get('salary_min') or salary_data['min'],
                     "salary_max": structured.get('salary_max') or salary_data['max'],
                     "salary": structured.get('salary_period') or salary_data['period'],
-                    "visa_sponsorship": structured.get('visa_sponsorship', False),
-                    "degree_required": structured.get('degree_required', False),
-                    "apply_url": structured['apply_url'],
-                    "date_posted": structured.get('date_posted') or raw_job.get('createdAt'),
+                    "visa_sponsorship": bool(company_obj.get('sponsorsH1B') or company_obj.get('sponsorsUKSkilledWorkerVisa') or structured.get('visa_sponsorship', False)),
+                    "degree_required": bool(raw_job.get('educationRequirementsCredentialCategory') or structured.get('degree_required', False)),
+                    "apply_url": raw_job.get('url'),
+                    "date_posted": normalize_date_posted(raw_job),
                     "location_id": structured['location'],
-                    "company_name": structured['company_name'],
+                    "company_name": company_obj.get('name', company),
                     "company_logo": cdn_logo_url,
                     "about_company": structured.get('about_company'),
                     "job_experience": structured.get('job_experience'),
                     "department": structured.get('department'),
-                    "company_linkedin": structured.get('company_linkedin'),
-                    "company_website": structured.get('company_website'),
-                    "company_slug": slugify(structured['company_name']),
+                    "company_linkedin": company_obj.get('linkedInURL') or structured.get('company_linkedin'),
+                    "company_website": company_obj.get('homePageURL') or structured.get('company_website'),
+                    "company_slug": company_obj.get('slug') or slugify(company_obj.get('name', company)),
                     "excerpts": structured['excerpts'],
-                    "slug": slugify(f"{structured['title']}-{structured['company_name']}"),
+                    "slug": slugify(f"{structured['title']}-{company_obj.get('name', company)}"),
                     "skills": structured['skills'],
                     "source": "hiver"
                 }
