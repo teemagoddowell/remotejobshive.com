@@ -447,7 +447,7 @@ def fetch_latest_page(page=1, items_per_page=50):
     return batch, has_next
 
 def clean_and_rewrite_with_gemini(raw_job, salary_data):
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-3.8-flash')
 
     prompt = f"""
     You are an expert SEO copywriter and technical data engineer.
@@ -479,7 +479,7 @@ def clean_and_rewrite_with_gemini(raw_job, salary_data):
     """
 
     try:
-        response = model.generate_content(prompt)
+        response = model.generate_content(prompt, request_options={"timeout": 60.0})
         text = response.text.strip().replace('```json', '').replace('```', '')
         return json.loads(text)
     except Exception as e:
