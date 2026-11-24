@@ -714,7 +714,7 @@ def run_pipeline(target_count=50):
             save_last_page(1)
             break
 
-        current_page += 1
+        current_page = 1
         save_last_page(current_page)
 
     print(f"\n[✓] Run concluded. Added {added_count} new postings.")
