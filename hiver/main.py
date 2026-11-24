@@ -2,19 +2,28 @@ import os
 import json
 import time
 import re
+import re
 import warnings
 from curl_cffi import requests
-import google.generativeai as genai
+from openai import OpenAI
 from dotenv import load_dotenv
 from slugify import slugify
-
-warnings.filterwarnings("ignore", category=FutureWarning, module="google.auth")
 
 load_dotenv()
 
 # --- Configurations ---
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+groq_client = OpenAI(
+    api_key=GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1"
+)
+
+# Rotate across free-tier models (each has its own 200K TPD / 1K RPD bucket)
+GROQ_MODELS = [
+    "openai/gpt-oss-120b",
+    "qwen/qwen3.8-27b",
+    "openai/gpt-oss-20b"
+]
 
 HIVER_API_KEY = os.getenv("SCRAPER_API_KEY")
 HIVER_ENDPOINT = os.getenv("HIVER_ENDPOINT", "https://api.remotejobshive.com/hiver/add-job")
@@ -372,6 +381,44 @@ def extract_salary_info(raw_job):
         }
     return None
 
+def extract_salary_info(raw_job):
+    """Robust extractor covering nested objects, root numbers, and string ranges."""
+    salary_obj = raw_job.get("salaryRange") or {}
+    
+    s_min = salary_obj.get("min") or raw_job.get("salaryMin") or raw_job.get("minSalary")
+    s_max = salary_obj.get("max") or raw_job.get("salaryMax") or raw_job.get("maxSalary")
+    period = salary_obj.get("salaryType") or raw_job.get("salaryPeriod") or "year"
+
+    # Fallback to string extraction if numbers are missing
+    if not s_min and not s_max:
+        raw_str = salary_obj.get("salaryHumanReadableText") or raw_job.get("salary") or ""
+        matches = re.findall(r'[\$£€]?\s*(\d+[\d,]*)', str(raw_str))
+        if matches:
+            cleaned = [int(m.replace(',', '')) for m in matches if m.replace(',', '').isdigit()]
+            if len(cleaned) == 1:
+                s_min = cleaned[0]
+            elif len(cleaned) >= 2:
+                s_min, s_max = min(cleaned), max(cleaned)
+
+    # Convert valid floats/strings to clean ints
+    try:
+        s_min = int(float(s_min)) if s_min else None
+    except (ValueError, TypeError):
+        s_min = None
+
+    try:
+        s_max = int(float(s_max)) if s_max else None
+    except (ValueError, TypeError):
+        s_max = None
+
+    if s_min or s_max:
+        return {
+            "min": s_min,
+            "max": s_max,
+            "period": f"/{period.replace('per ', '').strip()}"
+        }
+    return None
+
 def save_logo_to_cdn(image_url, company_name="company"):
     if not image_url or not str(image_url).startswith("http"):
         return None
@@ -423,7 +470,12 @@ def fetch_latest_page(page=1, items_per_page=50):
                 "Backend Engineer",
                 "Frontend Engineer",
                 "DevOps Engineer"
+                "Frontend Engineer",
+                "DevOps Engineer"
             ],
+            "locationFilters": ["Worldwide", "Anywhere", "United States"],
+            "sortBy": "datePosted",
+            "sortOrder": "desc"
             "locationFilters": ["Worldwide", "Anywhere", "United States"],
             "sortBy": "datePosted",
             "sortOrder": "desc"
@@ -437,8 +489,14 @@ def fetch_latest_page(page=1, items_per_page=50):
         print(f"[!] Quota reached (429): {res.text}")
         return None, False
 
+    
+    if res.status_code == 429:
+        print(f"[!] Quota reached (429): {res.text}")
+        return None, False
+
     if res.status_code != 200:
         print(f"[!] API error on page {page} ({res.status_code}): {res.text}")
+        return None, False
         return None, False
 
     data = res.json()
@@ -446,45 +504,71 @@ def fetch_latest_page(page=1, items_per_page=50):
     has_next = data.get("pagination", {}).get("hasNextPage", False)
     return batch, has_next
 
-def clean_and_rewrite_with_gemini(raw_job, salary_data):
-    model = genai.GenerativeModel('gemini-3.8-flash')
+def clean_and_rewrite_with_llm(raw_job, salary_data):
+    clean_input = {
+        "title": raw_job.get("roleTitle"),
+        "company": raw_job.get("company", {}).get("name"),
+        "description": raw_job.get("description") or raw_job.get("jobDescription"),
+        "requirements": raw_job.get("requirements"),
+        "benefits": raw_job.get("benefits"),
+        "url": raw_job.get("url"),
+        "createdAt": raw_job.get("createdAt")
+    }
 
-    prompt = f"""
-    You are an expert SEO copywriter and technical data engineer.
-    Analyze the following raw job posting data. Rewrite textual fields for high-ranking SEO while matching the schema accurately.
+    system_prompt = (
+        "You are an expert SEO copywriter and technical data engineer. "
+        "Rewrite job listings into original, high-ranking SEO copy while preserving technical stack details. "
+        "Return ONLY a single valid JSON object matching the exact schema keys requested."
+    )
 
-    Return ONLY a single valid JSON object (no markdown quotes, no triple backticks) with these exact keys:
+    user_prompt = f"""
+    Rewrite and structure this job posting into JSON.
+
+    Required JSON keys:
     "title", "job_titles", "description", "excerpts", "requirements", "date_posted", "benefits",
     "job_type", "job_position", "department", "job_experience", "salary_min", "salary_max",
     "currency", "salary_period", "visa_sponsorship", "degree_required", "apply_url", "location",
     "company_name", "company_logo", "skills", "about_company", "company_linkedin", "company_website".
 
     Rules:
-    1. "description": Thoroughly rewrite into high-ranking, natural SEO copy. Keep all stack specifics. Strip all HTML.
-    2. "requirements": Numbered list (1., 2., 3.).
-    3. "benefits": Dashed list (- Health, - 401k) or null if not found.
-    4. "excerpts": Crisp meta-description summary between 150 and 175 characters.
-    5. "job_titles": Best single integer ID from: {job_titles}
-    6. "skills": Matching IDs from: {skills} as a comma-separated string (max 10).
+    1. "description": Thoroughly rewrite into natural, high-ranking SEO copy. Strip raw HTML.
+    2. "requirements": Numbered list string (1., 2., 3.).
+    3. "benefits": Dashed list string (- Health, - 401k) or null.
+    4. "excerpts": Crisp meta summary between 150 and 175 characters.
+    5. "job_titles": Single integer ID best matching the role from: {job_titles}
+    6. "skills": Matching integer IDs from: {skills} as a comma-separated string (max 10).
     7. "location": Best match ID from: {locations} (default to 1).
     8. "job_position": 'Entry-Level', 'Junior', 'Mid-Level', or 'Senior'.
     9. "salary_min": {salary_data.get('min')}
     10. "salary_max": {salary_data.get('max')}
     11. "salary_period": "{salary_data.get('period', '/year')}"
     12. "degree_required" and "visa_sponsorship": Strict booleans.
-    13. "apply_url": Preserve input apply_url exactly.
+    13. "apply_url": "{clean_input.get('url')}"
 
-    Raw Job Input:
-    {json.dumps(raw_job, indent=2)}
+    Raw Input:
+    {json.dumps(clean_input, indent=2)}
     """
 
-    try:
-        response = model.generate_content(prompt, request_options={"timeout": 60.0})
-        text = response.text.strip().replace('```json', '').replace('```', '')
-        return json.loads(text)
-    except Exception as e:
-        print(f"    [!] Error during Gemini rewrite: {e}")
-        return None
+    for model_name in GROQ_MODELS:
+        try:
+            completion = groq_client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.3,
+                timeout=45.0
+            )
+            return json.loads(completion.choices[0].message.content)
+        except Exception as e:
+            print(f"    [!] {model_name} failed or hit limit ({e}), trying fallback model...")
+            time.sleep(2)
+            continue
+
+    print("    [!] All Groq models exhausted or failed for this listing.")
+    return None
 
 def push_to_hive(payload):
     headers = {
@@ -508,11 +592,24 @@ def run_pipeline(target_count=50):
     print(f"[*] Starting Resilient Sync Run: Target = {target_count} jobs with verified salary")
     print(f"[*] Starting at Page: {current_page}")
     print(f"[*] Total previously cached entries: {len(seen)}")
+    print(f"[*] Starting Resilient Sync Run: Target = {target_count} jobs with verified salary")
+    print(f"[*] Starting at Page: {current_page}")
+    print(f"[*] Total previously cached entries: {len(seen)}")
     print(f"=======================================================\n")
 
     while added_count < target_count:
         print(f"[*] Requesting Page {current_page} (50 items) from Remote Rocketship...")
+        print(f"[*] Requesting Page {current_page} (50 items) from Remote Rocketship...")
         batch, has_next = fetch_latest_page(page=current_page, items_per_page=50)
+
+        # Handle API rate limit / server error without resetting progress
+        if batch is None:
+            print("[*] API halted due to error/quota. Preserving page tracker position.")
+            break
+
+        # Reached natural end of listings
+        if len(batch) == 0:
+            print("[*] Reached end of available job pages. Looping back to page 1.")
 
         # Handle API rate limit / server error without resetting progress
         if batch is None:
@@ -549,6 +646,10 @@ def run_pipeline(target_count=50):
             salary_data = extract_salary_info(raw_job)
             if not salary_data:
                 # Mark as seen so this unsalaried job is never re-processed
+            # 3. Robust salary extraction across all fields
+            salary_data = extract_salary_info(raw_job)
+            if not salary_data:
+                # Mark as seen so this unsalaried job is never re-processed
                 seen.add(job_id)
                 if apply_url:
                     seen.add(apply_url)
@@ -556,11 +657,12 @@ def run_pipeline(target_count=50):
 
             print(f"\n[{added_count + 1}/{target_count}] Processing: {title} @ {company}")
             print(f"    Salary Found: Min={salary_data['min']}, Max={salary_data['max']}, Period={salary_data['period']}")
+            print(f"    Salary Found: Min={salary_data['min']}, Max={salary_data['max']}, Period={salary_data['period']}")
 
             try:
-                structured = clean_and_rewrite_with_gemini(raw_job, salary_data)
+                structured = clean_and_rewrite_with_llm(raw_job, salary_data)
                 if not structured:
-                    raise ValueError("Gemini returned invalid payload")
+                    raise ValueError("LLM returned invalid payload")
 
                 raw_logo = raw_job.get("company", {}).get("logoUrl") or structured.get("company_logo")
                 cdn_logo_url = save_logo_to_cdn(raw_logo, structured.get("company_name", company))
@@ -573,6 +675,9 @@ def run_pipeline(target_count=50):
                     "benefits": structured.get('benefits'),
                     "job_type": structured.get('job_type', 'Full-Time'),
                     "job_position": structured['job_position'],
+                    "salary_min": structured.get('salary_min') or salary_data['min'],
+                    "salary_max": structured.get('salary_max') or salary_data['max'],
+                    "salary": structured.get('salary_period') or salary_data['period'],
                     "salary_min": structured.get('salary_min') or salary_data['min'],
                     "salary_max": structured.get('salary_max') or salary_data['max'],
                     "salary": structured.get('salary_period') or salary_data['period'],
@@ -608,11 +713,12 @@ def run_pipeline(target_count=50):
                 failed.add(job_id)
                 save_set(failed, FAILED_FILE)
 
-            time.sleep(1)
+            time.sleep(10)
 
         save_set(seen, SEEN_FILE)
 
         if not has_next:
+            print("[*] Reached end of pagination. Looping back to page 1.")
             print("[*] Reached end of pagination. Looping back to page 1.")
             save_last_page(1)
             break
@@ -620,6 +726,8 @@ def run_pipeline(target_count=50):
         current_page += 1
         save_last_page(current_page)
 
+    print(f"\n[✓] Run concluded. Added {added_count} new postings.")
+    print(f"[✓] Current tracker saved at page {current_page}.\n")
     print(f"\n[✓] Run concluded. Added {added_count} new postings.")
     print(f"[✓] Current tracker saved at page {current_page}.\n")
 
