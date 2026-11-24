@@ -581,24 +581,11 @@ def run_pipeline(target_count=50):
     print(f"[*] Starting Resilient Sync Run: Target = {target_count} jobs with verified salary")
     print(f"[*] Starting at Page: {current_page}")
     print(f"[*] Total previously cached entries: {len(seen)}")
-    print(f"[*] Starting Resilient Sync Run: Target = {target_count} jobs with verified salary")
-    print(f"[*] Starting at Page: {current_page}")
-    print(f"[*] Total previously cached entries: {len(seen)}")
-    print(f"=======================================================\n")
 
     while added_count < target_count:
         print(f"[*] Requesting Page {current_page} (50 items) from Remote Rocketship...")
-        print(f"[*] Requesting Page {current_page} (50 items) from Remote Rocketship...")
         batch, has_next = fetch_latest_page(page=current_page, items_per_page=50)
 
-        # Handle API rate limit / server error without resetting progress
-        if batch is None:
-            print("[*] API halted due to error/quota. Preserving page tracker position.")
-            break
-
-        # Reached natural end of listings
-        if len(batch) == 0:
-            print("[*] Reached end of available job pages. Looping back to page 1.")
 
         # Handle API rate limit / server error without resetting progress
         if batch is None:
@@ -635,17 +622,12 @@ def run_pipeline(target_count=50):
             salary_data = extract_salary_info(raw_job)
             if not salary_data:
                 # Mark as seen so this unsalaried job is never re-processed
-            # 3. Robust salary extraction across all fields
-            salary_data = extract_salary_info(raw_job)
-            if not salary_data:
-                # Mark as seen so this unsalaried job is never re-processed
                 seen.add(job_id)
                 if apply_url:
                     seen.add(apply_url)
                 continue
 
             print(f"\n[{added_count + 1}/{target_count}] Processing: {title} @ {company}")
-            print(f"    Salary Found: Min={salary_data['min']}, Max={salary_data['max']}, Period={salary_data['period']}")
             print(f"    Salary Found: Min={salary_data['min']}, Max={salary_data['max']}, Period={salary_data['period']}")
 
             try:
@@ -664,9 +646,6 @@ def run_pipeline(target_count=50):
                     "benefits": structured.get('benefits'),
                     "job_type": structured.get('job_type', 'Full-Time'),
                     "job_position": structured['job_position'],
-                    "salary_min": structured.get('salary_min') or salary_data['min'],
-                    "salary_max": structured.get('salary_max') or salary_data['max'],
-                    "salary": structured.get('salary_period') or salary_data['period'],
                     "salary_min": structured.get('salary_min') or salary_data['min'],
                     "salary_max": structured.get('salary_max') or salary_data['max'],
                     "salary": structured.get('salary_period') or salary_data['period'],
@@ -708,15 +687,12 @@ def run_pipeline(target_count=50):
 
         if not has_next:
             print("[*] Reached end of pagination. Looping back to page 1.")
-            print("[*] Reached end of pagination. Looping back to page 1.")
             save_last_page(1)
             break
 
         current_page += 1
         save_last_page(current_page)
 
-    print(f"\n[✓] Run concluded. Added {added_count} new postings.")
-    print(f"[✓] Current tracker saved at page {current_page}.\n")
     print(f"\n[✓] Run concluded. Added {added_count} new postings.")
     print(f"[✓] Current tracker saved at page {current_page}.\n")
 
