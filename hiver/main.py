@@ -470,12 +470,7 @@ def fetch_latest_page(page=1, items_per_page=50):
                 "Backend Engineer",
                 "Frontend Engineer",
                 "DevOps Engineer"
-                "Frontend Engineer",
-                "DevOps Engineer"
             ],
-            "locationFilters": ["Worldwide", "Anywhere", "United States"],
-            "sortBy": "datePosted",
-            "sortOrder": "desc"
             "locationFilters": ["Worldwide", "Anywhere", "United States"],
             "sortBy": "datePosted",
             "sortOrder": "desc"
@@ -484,19 +479,13 @@ def fetch_latest_page(page=1, items_per_page=50):
     }
 
     res = requests.post(ROCKETSHIP_ENDPOINT, headers=headers, json=payload, impersonate="chrome120", timeout=30)
-    
-    if res.status_code == 429:
-        print(f"[!] Quota reached (429): {res.text}")
-        return None, False
 
-    
     if res.status_code == 429:
         print(f"[!] Quota reached (429): {res.text}")
         return None, False
 
     if res.status_code != 200:
         print(f"[!] API error on page {page} ({res.status_code}): {res.text}")
-        return None, False
         return None, False
 
     data = res.json()
