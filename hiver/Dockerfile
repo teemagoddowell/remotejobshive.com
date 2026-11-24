@@ -13,17 +13,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-<<<<<<< HEAD
 COPY main.py worker.py ./
 CMD ["python", "-u", "worker.py"]
-=======
-COPY main.py .
-
-# Run every 4 hours (14,400 seconds) -> 6 runs/day = ~300 verified jobs/day safely under the 3k raw quota
-CMD ["python", "-u", "-c", "import subprocess, time; \
-while True: \
-    print('[*] Worker: Initiating batch sync...', flush=True); \
-    subprocess.run(['python', 'main.py']); \
-    print('[*] Worker: Sleeping for 4 hours until next scheduled cycle...', flush=True); \
-    time.sleep(14400)"]
->>>>>>> e9a2561 (hiver groq update)
